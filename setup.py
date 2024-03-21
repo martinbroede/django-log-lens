@@ -1,11 +1,15 @@
 import json
+import os
+from pathlib import Path
 
 import setuptools
 
-with open("README.md", "r") as f:
+PARENT_FOLDER = Path(__file__).parent
+
+with open(PARENT_FOLDER / "README.md", "r") as f:
     LONG_DESCRIPTION = f.read()
 
-with open("VERSION.json", "r") as f:
+with open(PARENT_FOLDER / "VERSION.json", "r") as f:
     version_json = f.read()
     VERSION = json.loads(version_json)["version"]
 
@@ -19,6 +23,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/martinbroede/django-log-lens",
     packages=setuptools.find_packages(),
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
