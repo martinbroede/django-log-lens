@@ -1,0 +1,4 @@
+__pycache__
+.venv
+dist
+django_log_lens.egg-info

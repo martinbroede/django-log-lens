@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Logfile Viewer</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+    <link rel="stylesheet" href="{% static 'django_log_lens/styles.css' %}" />
+  </head>
+
+  <body>
+    <div id="div-toolbar" class="fixed">
+      <br />
+      <div class="toolbar-block">
+        <button onclick="fetchLogfile()">Refresh</button>
+        <div class="toolbar-block">
+          <label>Configuration</label>
+          <button id="btn-toggle-visibility" onclick="toggleToolbarExtensionVisibility(this)">Show Less</button>
+          <input type="text" autocomplete="off" id="input-path-splitter" placeholder="Path Splitter" />
+          <input type="text" autocomplete="off" id="input-path-prefix" placeholder="Path Prefix" />
+        </div>
+      </div>
+      <div class="toolbar-block">
+        <div class="toolbar-block">
+          <label>Navigation</label>
+          <input
+            type="text"
+            autocomplete="off"
+            id="input-line-number"
+            placeholder="Line Number"
+            onkeyup="goToLineWidId(this.value)"
+          />
+          <button onclick="window.scrollTo(0, 0)">Top</button>
+          <button onclick="window.scrollTo(0, document.body.scrollHeight)">Bottom</button>
+        </div>
+        <div class="toolbar-block">
+          <button onclick="goToPreviousError()">Prev. Error</button>
+          <button onclick="goToNextError()">Next Error</button>
+          <button onclick="goToLastError()">Latest Error</button>
+        </div>
+      </div>
+
+      <br />
+      <br />
+
+      <div id="div-toolbar-extension">
+        <table id="table-file-paths">
+          <tr>
+            <th>Handler</th>
+            <th>Path</th>
+            <th>Load</th>
+            <th>Clear</th>
+          </tr>
+        </table>
+        <table id="table-statistics">
+          <tr>
+            <td>Handler Name</td>
+            <td id="td-handler-name">undefined</td>
+          </tr>
+          <tr>
+            <td>Errors</td>
+            <td id="td-number-of-errors">0</td>
+          </tr>
+          <tr>
+            <td>Warnings</td>
+            <td id="td-number-of-warnings">0</td>
+          </tr>
+          <tr>
+            <td>Lines</td>
+            <td id="td-number-of-lines">0</td>
+          </tr>
+        </table>
+        <br />
+        <h3 id="h3-logfile-name">FILEPATH</h3>
+        <button id="btn-auto-refresh" state="off" onclick="onRefreshBtnClick(this)">Auto Refresh</button>
+      </div>
+      <hr />
+    </div>
+
+    <pre id="pre-log-content"></pre>
+    <div id="div-message-toast">
+      <p id="p-message-toast-text"></p>
+    </div>
+
+    <div id="div-overlay" style="display: none">
+      <div id="div-prompt" style="display: block">
+        <p id="p-prompt-text"></p>
+        <input type="text" id="input-prompt" />
+        <div style="height: 10px">&nbsp;</div>
+        <button id="btn-prompt-ok" onclick="promptOnConfirm()">OK</button>
+        <button id="btn-prompt-cancel" onclick="promptOnCancel()">Cancel</button>
+        <br />
+        <br />
+      </div>
+    </div>
+    <script>
+      const clearLogFileURL = '{% url "clear-logfile" %}?handler_name=';
+      const csrfToken = "{{ csrf_token }}";
+      const requestLogFilePathsURL = "{% url 'request-logfile-paths' %}";
+      const requestLogfileTimestampURL = "{% url 'request-logfile-timestamp' %}?handler_name=";
+      const requestLogfileURL = '{% url "request-logfile" %}?handler_name=';
+    </script>
+    <script src="{% static 'django_log_lens/script.js' %}"></script>
+  </body>
+</html>
