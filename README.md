@@ -1,6 +1,6 @@
 [![PyPi](https://img.shields.io/badge/PyPi-django--log--lens-blue)](https://pypi.org/project/django-log-lens/)
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmartinbroede%2Fdjango-log-lens%2Fmain%2FVERSION.json&query=version&label=Version)](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/VERSION.json)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 # Django Log Lens
 
