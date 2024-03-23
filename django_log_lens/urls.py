@@ -7,9 +7,8 @@ from .views import (clear_logfile, log_js_error, request_logfile,
 urlpatterns = [
     path('request/paths', request_logfile_paths, name="request-logfile-paths"),
     path('request/file', request_logfile, name="request-logfile"),
-    path('request/timestamp', request_logfile_timestamp,
-         name="request-logfile-timestamp"),
+    path('request/timestamp', request_logfile_timestamp, name="request-logfile-timestamp"),
     path('post', log_js_error, name="log-js-error"),
     path('clear/file', clear_logfile, name="clear-logfile"),
-    path('view', view_logfiles, name="view-logfiles"),
+    path('view', view_logfiles, name="log-lens"),
 ]
