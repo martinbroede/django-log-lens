@@ -3,16 +3,20 @@ import logging
 import os
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.middleware.csrf import get_token
 from django.template import loader
 
 REQUEST_METHOD_NOT_ALLOWED_TEXT = "request method not allowed"
-HANDLER_NAME_NOT_PROVIDED_TEXT = "400 Bad Request: handler_name not provided"
-ALLOW_JS_LOGGING = True
+HANDLER_NAME_NOT_PROVIDED_TEXT = "400 Bad Request: no handler name provided"
 
-client_logger = logging.getLogger("client_logger")
+try:
+    ALLOW_JS_LOGGING = settings.ALLOW_JS_LOGGING
+except AttributeError:
+    ALLOW_JS_LOGGING = False
+
+client_logger = logging.getLogger("django_log_lens.client")
 
 log_level_functional_map = {
     "DEBUG": client_logger.debug,
@@ -24,13 +28,12 @@ log_level_functional_map = {
 }
 
 
-@login_required
 def log_js_error(request):
     """Logs the error message and stack trace provided by the POST request."""
     if request.method != 'POST':
         return HttpResponseBadRequest(REQUEST_METHOD_NOT_ALLOWED_TEXT)
     if not ALLOW_JS_LOGGING:
-        return HttpResponseBadRequest("JS logging is not allowed")
+        return HttpResponseBadRequest("JavaScript / Client logging is not allowed")
     log = json.loads(request.body.decode('utf-8'))
     log_message = log['error_message']
     log_level = log['severity']
@@ -49,12 +52,12 @@ def request_logfile(request) -> HttpResponse:
     handler_name = request.GET.get('handler_name', None)
     if handler_name is None:
         return HttpResponseBadRequest(HANDLER_NAME_NOT_PROVIDED_TEXT)
-    filename = settings.LOGGING['handlers'][handler_name]['filename']
     try:
+        filename = settings.LOGGING['handlers'][handler_name]['filename']
         with open(filename, 'r') as f:
             ti_m = os.path.getmtime(filename)
             return JsonResponse({"text": f.read(), "timestamp": f"{ti_m}"})
-    except FileNotFoundError:
+    except (FileNotFoundError, KeyError):
         return HttpResponse("No logs available")
 
 
@@ -69,12 +72,12 @@ def request_logfile_timestamp(request) -> HttpResponse:
     handler_name = request.GET.get('handler_name', None)
     if handler_name is None:
         return HttpResponseBadRequest(HANDLER_NAME_NOT_PROVIDED_TEXT)
-    filename = settings.LOGGING['handlers'][handler_name]['filename']
     try:
+        filename = settings.LOGGING['handlers'][handler_name]['filename']
         ti_m = os.path.getmtime(filename)
         return JsonResponse({"timestamp": f"{ti_m}"})
-    except FileNotFoundError:
-        return HttpResponse("No logs available")
+    except (FileNotFoundError, KeyError):
+        return JsonResponse({})
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -106,9 +109,12 @@ def request_logfile_paths(request) -> JsonResponse | HttpResponseBadRequest:
     if request.method != 'GET':
         return HttpResponseBadRequest(REQUEST_METHOD_NOT_ALLOWED_TEXT)
 
-    paths = {handler_name: settings.LOGGING['handlers'][handler_name]['filename']
-             for handler_name in settings.LOGGING['handlers']}
-    return JsonResponse(paths)
+    try:
+        paths = {handler_name: settings.LOGGING['handlers'][handler_name]['filename']
+                 for handler_name in settings.LOGGING['handlers']}
+        return JsonResponse(paths)
+    except KeyError:
+        return JsonResponse({})
 
 
 @user_passes_test(lambda u: u.is_superuser)
