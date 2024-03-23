@@ -1,24 +1,24 @@
 :root {
   /* Dracula Theme */
-  --background-color: #292a38;
-  --lighter-background-color: #282e38;
-  --neutral-color: #44475a;
-  --toolbar-color: #1f1f29;
-  --highlight-color: #44475a;
-  --foreground-color: #f8f8f2;
-  --comment-color: #6272a4;
+  --background-color: #22262e;
+  --lighter-background-color: #2d323b;
+  --neutral-color: #333a46;
+  --toolbar-color: #181f25;
+  --highlight-color: #313742;
+  --foreground-color: #c3c7ce;
+  --comment-color: #bbbec7;
   --cyan-color: #8be9fd;
   --green-color: #50fa7b;
   --orange-color: #ffb86c;
   --pink-color: #ff79c6;
-  --purple-color: #bd93f9;
   --light-red-color: #ff5555;
   --red-color: #ff2929;
   --yellow-color: #f1fa8c;
   --padding: 8px;
   --small-padding: calc(var(--padding) / 2);
-  --control-elem-color: var(--comment-color);
-  --font: 'Courier New', Courier, monospace;
+  --control-elem-color: var(--foreground-color);
+  --control-elem-bg-color: #182838;
+  --font: "Courier New", Courier, monospace;
 }
 
 /** log level colors */
@@ -128,26 +128,25 @@ a {
 
 button,
 input {
-  background-color: var(--background-color);
-  border-radius: calc(var(--padding) / 1.5);
-  border: 1px solid var(--control-elem-color);
+  background-color: var(--control-elem-bg-color);
+  border-radius: calc(var(--padding) / 2);
+  border: 1px solid var(--neutral-color);
   color: var(--control-elem-color);
   cursor: pointer;
   font-family: var(--font);
   font-size: large;
-  font-weight: bold;
   margin-bottom: var(--padding);
   margin-left: var(--padding);
   margin-top: var(--padding);
 }
 
-button[state='on']::before {
-  content: '✅ ';
+button[state="on"]::before {
+  content: "✅ ";
   font-size: small;
 }
 
-button[state='off']::before {
-  content: '❌ ';
+button[state="off"]::before {
+  content: "❌ ";
   font-size: small;
 }
 
@@ -173,10 +172,10 @@ input {
 }
 
 table {
-  background-color: var(--background-color);
+  background-color: var(--control-elem-bg-color);
   border-collapse: collapse;
-  border: 1px solid var(--control-elem-color);
-  border-radius: var(--padding);
+  border: 1px solid var(--neutral-color);
+  border-radius: calc(var(--padding) / 2);
   color: var(--control-elem-color);
   display: inline-block;
   margin-left: var(--padding);
@@ -186,7 +185,7 @@ table {
 table td,
 table th {
   padding: calc(var(--padding) / 1.5);
-  border: 1px solid var(--control-elem-color);
+  border: 1px solid var(--neutral-color);
 }
 
 table th {
