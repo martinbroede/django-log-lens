@@ -8,6 +8,7 @@
   </head>
 
   <body>
+    {% csrf_token %}
     <div id="div-toolbar" class="fixed">
       <br />
       <div class="toolbar-block">
@@ -94,7 +95,6 @@
     </div>
     <script>
       const clearLogFileURL = '{% url "clear-logfile" %}?handler_name=';
-      const csrfToken = "{{ csrf_token }}";
       const requestLogFilePathsURL = "{% url 'request-logfile-paths' %}";
       const requestLogfileTimestampURL = "{% url 'request-logfile-timestamp' %}?handler_name=";
       const requestLogfileURL = '{% url "request-logfile" %}?handler_name=';

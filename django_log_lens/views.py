@@ -3,14 +3,12 @@ import logging
 import os
 
 from django.conf import settings
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
-from django.template import loader
+from django.views.decorators.http import require_http_methods
 
-REQUEST_METHOD_NOT_ALLOWED_TEXT = "request method not allowed"
 HANDLER_NAME_NOT_PROVIDED_TEXT = "400 Bad Request: no handler name provided"
 
 try:
@@ -30,26 +28,29 @@ log_level_functional_map = {
 }
 
 
+@require_http_methods(["GET", "POST"])
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username', '')
         password = request.POST.get('password', '')
         user = authenticate(username=username, password=password)
         if user is not None and user.is_superuser:  # type: ignore
+            login(request, user)
             return redirect('log-lens')
         elif user is not None:
             return render(request, 'log-lens-login.html', {'error_message': f'{username} is not a superuser'})
         else:
             return render(request, 'log-lens-login.html', {'error_message': 'Invalid credentials'})
-    return render(request, 'log-lens-login.html')
+    else:
+        return render(request, 'log-lens-login.html')
 
 
+@require_http_methods(["POST"])
 def log_js_error(request):
     """Logs the error message and stack trace provided by the POST request."""
-    if request.method != 'POST':
-        return HttpResponseBadRequest(REQUEST_METHOD_NOT_ALLOWED_TEXT)
     if not ALLOW_JS_LOGGING:
         return HttpResponseBadRequest("JavaScript / Client logging is not allowed")
+
     log = json.loads(request.body.decode('utf-8'))
     log_message = log['error_message']
     log_level = log['severity']
@@ -57,14 +58,13 @@ def log_js_error(request):
     return HttpResponse("Error logged")
 
 
-@user_passes_test(lambda u: u.is_superuser)
+@require_http_methods(["GET"])
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens-login')
 def request_logfile(request) -> HttpResponse:
     """
     Returns the contents of the log file specified by the handler_name GET parameter.
     A logged in superuser is required.
     """
-    if request.method != 'GET':
-        return HttpResponseBadRequest(REQUEST_METHOD_NOT_ALLOWED_TEXT)
     handler_name = request.GET.get('handler_name', None)
     if handler_name is None:
         return HttpResponseBadRequest(HANDLER_NAME_NOT_PROVIDED_TEXT)
@@ -77,14 +77,13 @@ def request_logfile(request) -> HttpResponse:
         return HttpResponse("No logs available")
 
 
-@user_passes_test(lambda u: u.is_superuser)
+@require_http_methods(["GET"])
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens-login')
 def request_logfile_timestamp(request) -> HttpResponse:
     """
     Returns the contents of the log file specified by the handler_name GET parameter.
     A logged in superuser is required.
     """
-    if request.method != 'GET':
-        return HttpResponseBadRequest(REQUEST_METHOD_NOT_ALLOWED_TEXT)
     handler_name = request.GET.get('handler_name', None)
     if handler_name is None:
         return HttpResponseBadRequest(HANDLER_NAME_NOT_PROVIDED_TEXT)
@@ -96,14 +95,13 @@ def request_logfile_timestamp(request) -> HttpResponse:
         return JsonResponse({})
 
 
-@user_passes_test(lambda u: u.is_superuser)
+@require_http_methods(["DELETE"])
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens-login')
 def clear_logfile(request) -> HttpResponse:
     """
     Clears the contents of the log file specified by the handler_name GET parameter.
     A logged in superuser is required.
     """
-    if request.method != 'DELETE':
-        return HttpResponseBadRequest(REQUEST_METHOD_NOT_ALLOWED_TEXT)
     handler_name = request.GET.get('handler_name', None)
     if handler_name is None:
         return HttpResponseBadRequest(HANDLER_NAME_NOT_PROVIDED_TEXT)
@@ -116,31 +114,28 @@ def clear_logfile(request) -> HttpResponse:
         return HttpResponse("No logs available")
 
 
-@user_passes_test(lambda u: u.is_superuser)
+@require_http_methods(["GET"])
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens-login')
 def request_logfile_paths(request) -> JsonResponse | HttpResponseBadRequest:
     """
     Returns a JSON object containing the paths of all log files.
     A logged in superuser is required.
     """
-    if request.method != 'GET':
-        return HttpResponseBadRequest(REQUEST_METHOD_NOT_ALLOWED_TEXT)
-
     try:
-        paths = {handler_name: settings.LOGGING['handlers'][handler_name]['filename']
-                 for handler_name in settings.LOGGING['handlers']}
+        paths = {}
+        for handler_name in settings.LOGGING['handlers']:
+            if 'filename' in settings.LOGGING['handlers'][handler_name]:
+                paths[handler_name] = settings.LOGGING['handlers'][handler_name]['filename']
         return JsonResponse(paths)
     except KeyError:
         return JsonResponse({})
 
 
-@user_passes_test(lambda u: u.is_superuser)
-def view_logfiles(request) -> HttpResponse:
+@require_http_methods(["GET"])
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens-login')
+def log_lens_view(request) -> HttpResponse:
     """
     Returns the log viewer page.
     A logged in superuser is required.
     """
-    csrf_token = get_token(request)
-    if request.method != 'GET':
-        return HttpResponseBadRequest(REQUEST_METHOD_NOT_ALLOWED_TEXT)
-    template = loader.get_template("log-lens.html")
-    return HttpResponse(template.render({"csrf_token": csrf_token}, request))
+    return render(request, 'log-lens.html')

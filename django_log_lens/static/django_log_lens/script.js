@@ -321,6 +321,23 @@ function renderFilePathTable(data) {
 }
 
 /**
+ * Fetches the csrf token from the input elements of the page.
+ * See https://gist.github.com/sirodoht/fb7a6e98d33fc460d4f1eadaff486e7b - thanks!
+ * @returns {string} - the csrf token
+ */
+function getCsrf() {
+  const inputElements = document.querySelectorAll("input");
+  let csrfToken = "";
+  for (let i = 0; i < inputElements.length; ++i) {
+    if (inputElements[i].name === "csrfmiddlewaretoken") {
+      csrfToken = inputElements[i].value;
+      break;
+    }
+  }
+  return csrfToken;
+}
+
+/**
  * Fetches the file paths to the log files from the server.
  * In case no file paths are found, a message is displayed to the user
  * that they need to set up a logging configuration in their settings.py.
@@ -379,7 +396,7 @@ function clearLogFile(handlerName) {
   }
   fetch(clearLogFileURL + handlerName, {
     method: "DELETE",
-    headers: { "X-CSRFToken": csrfToken },
+    headers: { "X-CSRFToken": getCsrf() },
   })
     .then((response) => {
       if (response.status >= 400) {
