@@ -235,17 +235,18 @@ tr:last-child td {
 }
 
 #div-message-toast,
-#div-prompt {
+#div-prompt,
+#div-login {
   background-color: var(--toolbar-color);
   border-radius: calc(var(--padding) * 2);
   border: 1px solid var(--neutral-color);
-  bottom: 45%;
+  top: 50%;
   color: var(--control-elem-color);
   display: none;
   font-size: larger;
   font-weight: bold;
-  left: 30%;
-  margin-right: 50%;
+  left: 25%;
+  right: 25%;
   min-height: 10%;
   min-width: 40%;
   padding: var(--padding);

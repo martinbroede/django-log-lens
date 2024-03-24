@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import (clear_logfile, log_js_error, request_logfile,
+from .views import (clear_logfile, log_js_error, login_view, request_logfile,
                     request_logfile_paths, request_logfile_timestamp,
                     view_logfiles)
 
@@ -11,4 +11,5 @@ urlpatterns = [
     path('post', log_js_error, name="log-js-error"),
     path('clear/file', clear_logfile, name="clear-logfile"),
     path('view', view_logfiles, name="log-lens"),
+    path("login", login_view, name="log-lens-login"),
 ]

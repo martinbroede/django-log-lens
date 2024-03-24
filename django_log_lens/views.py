@@ -3,9 +3,11 @@ import logging
 import os
 
 from django.conf import settings
+from django.contrib.auth import authenticate
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.middleware.csrf import get_token
+from django.shortcuts import redirect, render
 from django.template import loader
 
 REQUEST_METHOD_NOT_ALLOWED_TEXT = "request method not allowed"
@@ -26,6 +28,20 @@ log_level_functional_map = {
     "CRITICAL": client_logger.critical,
     "ASSERTION FAILED (CRITICAL)": client_logger.critical
 }
+
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username', '')
+        password = request.POST.get('password', '')
+        user = authenticate(username=username, password=password)
+        if user is not None and user.is_superuser:  # type: ignore
+            return redirect('log-lens')
+        elif user is not None:
+            return render(request, 'log-lens-login.html', {'error_message': f'{username} is not a superuser'})
+        else:
+            return render(request, 'log-lens-login.html', {'error_message': 'Invalid credentials'})
+    return render(request, 'log-lens-login.html')
 
 
 def log_js_error(request):

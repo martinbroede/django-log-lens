@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% load static %}
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" media="screen" href='{% static "django_log_lens/styles.css" %}' />
+    <link rel="icon" type="image/png" href="{% static 'django_log_lens/favicon.svg' %}" />
+  </head>
+  <body>
+    <div id="div-overlay">
+      <div id="div-login" style="display: block; top: 25%">
+        <form method="post">
+          {% csrf_token %}
+          <h1>Login</h1>
+          <p class="info">Log in with a superuser account to manage your logs</p>
+          <p class="error">{{ error_message }}</p>
+          <label for="username">Username:</label>
+          <input type="text" name="username" id="username" required />
+          <br />
+          <label for="password">Password:</label>
+          <input type="password" name="password" id="password" required />
+          <br />
+          <br />
+          <br />
+          <button type="submit" style="width: 50%"><br />Login<br />&nbsp;</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
