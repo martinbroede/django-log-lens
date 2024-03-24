@@ -12,28 +12,28 @@
       y="6"
       width="120"
       height="140"
-      fill="#f5f5f566"
+      fill="#22262e"
       stroke="#666666"
       stroke-width="13"
       pointer-events="all"/>
     <path
       d="M 106 36 L 26 36"
       fill="none"
-      stroke="#2d7600"
+      stroke="#50fa7b"
       stroke-width="16"
       stroke-miterlimit="10"
       pointer-events="stroke"/>
     <path
       d="M 76 76 L 26 76"
       fill="none"
-      stroke="#006eaf"
+      stroke="#8be9fd"
       stroke-width="16"
       stroke-miterlimit="10"
       pointer-events="stroke"/>
     <path
       d="M 96 116 L 26 116"
       fill="none"
-      stroke="#d40000"
+      stroke="#ff5555"
       stroke-width="16"
       stroke-miterlimit="10"
       pointer-events="stroke"/>
