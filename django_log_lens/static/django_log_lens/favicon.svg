@@ -1,0 +1,41 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  version="1.1"
+  width="133px"
+  height="153px"
+  viewBox="-0.5 -0.5 133 153">
+  <defs/>
+  <g>
+    <rect
+      x="6"
+      y="6"
+      width="120"
+      height="140"
+      fill="#f5f5f566"
+      stroke="#666666"
+      stroke-width="13"
+      pointer-events="all"/>
+    <path
+      d="M 106 36 L 26 36"
+      fill="none"
+      stroke="#2d7600"
+      stroke-width="16"
+      stroke-miterlimit="10"
+      pointer-events="stroke"/>
+    <path
+      d="M 76 76 L 26 76"
+      fill="none"
+      stroke="#006eaf"
+      stroke-width="16"
+      stroke-miterlimit="10"
+      pointer-events="stroke"/>
+    <path
+      d="M 96 116 L 26 116"
+      fill="none"
+      stroke="#d40000"
+      stroke-width="16"
+      stroke-miterlimit="10"
+      pointer-events="stroke"/>
+  </g>
+</svg>
