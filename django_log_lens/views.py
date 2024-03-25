@@ -3,7 +3,7 @@ import logging
 import os
 
 from django.conf import settings
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect, render
@@ -26,6 +26,13 @@ log_level_functional_map = {
     "CRITICAL": client_logger.critical,
     "ASSERTION FAILED (CRITICAL)": client_logger.critical
 }
+
+
+@require_http_methods(["POST"])
+def logout_view(request):
+    if request.user.is_authenticated:
+        logout(request)
+    return redirect('log-lens-login')
 
 
 @require_http_methods(["GET", "POST"])

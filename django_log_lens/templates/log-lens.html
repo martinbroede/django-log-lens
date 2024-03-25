@@ -12,6 +12,13 @@
     <div id="div-toolbar" class="fixed">
       <br />
       <div class="toolbar-block">
+        <form style="display: inline-block" method="post" action="{% url 'log-lens-logout' %}">
+          {% csrf_token %}
+          <button type="submit">
+            Logout
+            <span style="color: var(--cyan-color); text-transform: uppercase;">{{user.username}}</span>
+          </button>
+        </form>
         <button onclick="fetchLogfile()">Refresh</button>
         <div class="toolbar-block">
           <label>Configuration</label>
@@ -71,8 +78,8 @@
           </tr>
         </table>
         <br />
-        <h3 id="h3-logfile-name">FILEPATH</h3>
         <button id="btn-auto-refresh" state="off" onclick="onRefreshBtnClick(this)">Auto Refresh</button>
+        <h3 id="h3-logfile-name"></h3>
       </div>
       <hr />
     </div>

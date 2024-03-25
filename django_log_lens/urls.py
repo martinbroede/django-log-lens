@@ -2,7 +2,7 @@ from django.shortcuts import redirect
 from django.urls import path
 
 from .views import (clear_logfile, log_js_error, log_lens_view, login_view,
-                    request_logfile, request_logfile_paths,
+                    logout_view, request_logfile, request_logfile_paths,
                     request_logfile_timestamp)
 
 urlpatterns = [
@@ -14,4 +14,5 @@ urlpatterns = [
     path('clear/file', clear_logfile, name="clear-logfile"),
     path('view', log_lens_view, name="log-lens"),
     path("login", login_view, name="log-lens-login"),
+    path("logout", logout_view, name="log-lens-logout"),
 ]

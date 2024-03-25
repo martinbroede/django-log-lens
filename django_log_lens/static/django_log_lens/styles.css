@@ -259,6 +259,5 @@ tr:last-child td {
 }
 
 #btn-auto-refresh {
-  margin-left: calc(2 * var(--padding));
   margin-bottom: calc(2 * var(--padding));
 }

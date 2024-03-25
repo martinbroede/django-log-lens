@@ -22,6 +22,7 @@
   window.customLogger = {
     csrfToken: getCsrf(),
     isEnabled: true,
+
     sendLogToServer: function (message, level) {
       if (!customLogger.isEnabled) {
         return;
@@ -42,34 +43,36 @@
           customLogger.isEnabled = false;
         });
     },
+
     dateFormatter: (date) => date.toISOString().slice(0, 19).replace("T", " "),
-    errorHandler: (message, source, lineno, colno, error) => {
+
+    errorHandler: (errorEvent) => {
       const date = customLogger.dateFormatter(new Date());
-      const stack = error.stack;
-      const errorMessage = `${date} CRITICAL:\nUncaught ${stack}`;
+      const displayMessage = errorEvent.error.stack || String(errorEvent.error);
+      const errorMessage = `${date} CRITICAL:\nUncaught ErrorEvent\n${displayMessage}`;
       customLogger.sendLogToServer(errorMessage, "CRITICAL");
     },
+
     log: (logLevel, args, stack) => {
       const message = Array.from(args)
         .map((arg) => {
           if (arg instanceof Error) {
             return "\n" + arg.stack;
           } else if (typeof arg === "object") {
-            return JSON.stringify(arg);
-          } else if (typeof arg === "function") {
-            return arg.toString();
+            return JSON.stringify(arg, 2);
           } else {
-            // string, number, boolean, null, undefined, symbol
-            return "" + arg;
+            return String(arg);
           }
         })
         .join(" ");
       const date = customLogger.dateFormatter(new Date());
       let logMessage = `${date} ${logLevel}:\n${message}`;
       logMessage += stack ? `\n${stack}` : "";
+      logMessage = logMessage.replaceAll("\\n", "\n");
       logMessage = logMessage.replaceAll(">", "&gt;").replaceAll("<", "&lt;");
       customLogger.sendLogToServer(logMessage, logLevel);
     },
+
     logDebug: console.debug,
     logInfo: console.info,
     logLog: console.log,
