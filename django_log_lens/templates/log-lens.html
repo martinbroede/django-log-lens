@@ -12,7 +12,7 @@
     <div id="div-toolbar" class="fixed">
       <br />
       <div class="toolbar-block">
-        <form style="display: inline-block" method="post" action="{% url 'log-lens-logout' %}">
+        <form style="display: inline-block" method="post" action="{% url 'log-lens:logout' %}">
           {% csrf_token %}
           <button type="submit">
             Logout
@@ -101,10 +101,10 @@
       </div>
     </div>
     <script>
-      const clearLogFileURL = '{% url "clear-logfile" %}?handler_name=';
-      const requestLogFilePathsURL = "{% url 'request-logfile-paths' %}";
-      const requestLogfileTimestampURL = "{% url 'request-logfile-timestamp' %}?handler_name=";
-      const requestLogfileURL = '{% url "request-logfile" %}?handler_name=';
+      const clearLogFileURL = '{% url "log-lens:clear" %}?handler_name=';
+      const requestLogFilePathsURL = "{% url 'log-lens:request-logfile-paths' %}";
+      const requestLogfileTimestampURL = "{% url 'log-lens:request-logfile-timestamp' %}?handler_name=";
+      const requestLogfileURL = '{% url "log-lens:request-logfile" %}?handler_name=';
     </script>
     <script src="{% static 'django_log_lens/script.js' %}"></script>
   </body>

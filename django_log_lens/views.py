@@ -32,7 +32,7 @@ log_level_functional_map = {
 def logout_view(request):
     if request.user.is_authenticated:
         logout(request)
-    return redirect('log-lens-login')
+    return redirect('log-lens:login')
 
 
 @require_http_methods(["GET", "POST"])
@@ -43,7 +43,7 @@ def login_view(request):
         user = authenticate(username=username, password=password)
         if user is not None and user.is_superuser:  # type: ignore
             login(request, user)
-            return redirect('log-lens')
+            return redirect('log-lens:view')
         elif user is not None:
             return render(request, 'log-lens-login.html', {'error_message': f'{username} is not a superuser'})
         else:
@@ -66,7 +66,7 @@ def log_js_error(request):
 
 
 @require_http_methods(["GET"])
-@user_passes_test(lambda user: user.is_superuser, login_url='log-lens-login')
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def request_logfile(request) -> HttpResponse:
     """
     Returns the contents of the log file specified by the handler_name GET parameter.
@@ -85,7 +85,7 @@ def request_logfile(request) -> HttpResponse:
 
 
 @require_http_methods(["GET"])
-@user_passes_test(lambda user: user.is_superuser, login_url='log-lens-login')
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def request_logfile_timestamp(request) -> HttpResponse:
     """
     Returns the contents of the log file specified by the handler_name GET parameter.
@@ -103,7 +103,7 @@ def request_logfile_timestamp(request) -> HttpResponse:
 
 
 @require_http_methods(["DELETE"])
-@user_passes_test(lambda user: user.is_superuser, login_url='log-lens-login')
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def clear_logfile(request) -> HttpResponse:
     """
     Clears the contents of the log file specified by the handler_name GET parameter.
@@ -122,7 +122,7 @@ def clear_logfile(request) -> HttpResponse:
 
 
 @require_http_methods(["GET"])
-@user_passes_test(lambda user: user.is_superuser, login_url='log-lens-login')
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def request_logfile_paths(request) -> JsonResponse | HttpResponseBadRequest:
     """
     Returns a JSON object containing the paths of all log files.
@@ -139,7 +139,7 @@ def request_logfile_paths(request) -> JsonResponse | HttpResponseBadRequest:
 
 
 @require_http_methods(["GET"])
-@user_passes_test(lambda user: user.is_superuser, login_url='log-lens-login')
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def log_lens_view(request) -> HttpResponse:
     """
     Returns the log viewer page.
