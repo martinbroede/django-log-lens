@@ -48,11 +48,12 @@
 
 .line-counter {
   color: var(--pink-color);
+  margin-left: 2px;
 }
 
 .quoted-text {
   cursor: pointer;
-  color: var(--pink-color);
+  color: var(--yellow-color);
 }
 
 .url {
@@ -134,7 +135,7 @@ a {
   background-color: var(--toolbar-color);
   border-radius: calc(var(--padding) / 2);
   border: 1px solid var(--neutral-color);
-  color: var(--control-elem-color);
+  color: var(--cyan-color);
   text-decoration: none;
   font-size: smaller;
 }
@@ -148,9 +149,7 @@ input {
   cursor: pointer;
   font-family: var(--font);
   font-size: large;
-  margin-bottom: var(--padding);
-  margin-left: var(--padding);
-  margin-top: var(--padding);
+  margin: var(--padding);
 }
 
 button[state="on"]::before {
@@ -236,7 +235,7 @@ tr:last-child td {
   width: 50px;
   margin-left: 4px;
   border-right: 1px solid #ccc;
-  background-color: #fff1;
+  background-color: var(--lighter-background-color);
 }
 
 #pre-log-content {
@@ -251,6 +250,7 @@ tr:last-child td {
   user-select: none;
   background-color: var(--toolbar-color);
   width: 100%;
+  padding-top: var(--padding);
 }
 
 #div-overlay {

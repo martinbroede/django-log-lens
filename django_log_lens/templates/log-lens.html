@@ -10,13 +10,12 @@
   <body>
     {% csrf_token %}
     <div id="div-toolbar" class="fixed">
-      <br />
       <div class="toolbar-block">
         <form style="display: inline-block" method="post" action="{% url 'log-lens:logout' %}">
           {% csrf_token %}
           <button type="submit">
             Logout
-            <span style="color: var(--cyan-color); text-transform: uppercase;">{{user.username}}</span>
+            <span style="color: var(--cyan-color); text-transform: uppercase">{{user.username}}</span>
           </button>
         </form>
         <button onclick="fetchLogfile()">Refresh</button>
