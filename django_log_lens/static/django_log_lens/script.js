@@ -140,7 +140,7 @@ function bindElementAttr(elem, elemAttr, obj, objProp, twoWay = false, onChangeC
     elem.addEventListener("change", handler);
   }
   if (twoWay) {
-    bindBack(obj, objProp, elem, elemAttr, onChangeCallback);
+    bindAttrBack(obj, objProp, elem, elemAttr, onChangeCallback);
   }
 }
 
@@ -152,7 +152,7 @@ function bindElementAttr(elem, elemAttr, obj, objProp, twoWay = false, onChangeC
  * @param {string} elemAttr the HTML attribute to bind to
  * @param {Function} onChangeCallback the callback function to be called when the property changes
  */
-function bindBack(obj, objProp, elem, elemAttr, onChangeCallback) {
+function bindAttrBack(obj, objProp, elem, elemAttr, onChangeCallback) {
   const propId = _bindings.propCounter;
   _bindings.propCounter++;
   if (obj[objProp]) {
@@ -181,6 +181,12 @@ function bindingObserverFn(obj, objProp) {
   console.debug("Changed property:", objProp, ":", obj[objProp]);
 }
 
+/**
+ * Sets up the keydown event listeners for the overlay and the window
+ * so that the user can confirm or cancel the prompt with the Enter or Escape key.
+ * Also sets up the keydown event listener for the window so that the user can refresh the page with F5.
+ * @returns {void}
+ */
 function setUpEventListeners() {
   divOverlay.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
@@ -361,9 +367,9 @@ function renderFilePathTable(data) {
 }
 
 /**
- * Fetches the csrf token from the input elements of the page.
+ * Fetches the CSRF token from the input elements of the page.
  * See https://gist.github.com/sirodoht/fb7a6e98d33fc460d4f1eadaff486e7b - thanks!
- * @returns {string} - the csrf token
+ * @returns {string} - the CSRF token
  */
 function getCsrf() {
   const inputElements = document.querySelectorAll("input");
@@ -540,13 +546,13 @@ function fetchLogfile(handlerName) {
  * @returns {void}
  */
 function finalize(logText, handlerName) {
-  const logTextLineCounter = logText.split("\n").length;
-  preLogContent.innerHTML = renderLogText(logText);
-  tdLineCounter.innerText = String(logTextLineCounter);
+  const logLines = logText.split("\n");
+  preLogContent.innerHTML = renderLogText(logLines);
+  tdLineCounter.innerText = String(logLines.length);
   tdErrorCountElem.innerText = String(state.errorCounter);
   tdWarningCount.innerText = String(state.warningCounter);
   h3LogfileName.innerText = state.filePaths[handlerName];
-  addLineNumbers(logTextLineCounter);
+  addLineNumbers(logLines.length);
   window.scrollTo(0, document.body.scrollHeight);
 }
 
@@ -556,13 +562,14 @@ function finalize(logText, handlerName) {
  */
 function addLineNumbers(noOfLines) {
   preLineCounter.innerHTML = "";
+  const lineCounterLines = [];
   for (let i = 0; i < noOfLines; i++) {
-    const lineCounterHTML = `<span id='line-${i + 1}' class='line-counter'>`.concat(
+    lineCounterLines[i] = `<span id='line-${i + 1}' class='line-counter'>`.concat(
       (i + 1).toString().padStart(5, "0"),
-      "</span>"
+      "</span><br />"
     );
-    preLineCounter.innerHTML += lineCounterHTML + "<br />";
   }
+  preLineCounter.innerHTML = lineCounterLines.join("");
 }
 
 /**
@@ -624,7 +631,7 @@ function renderLine(line, lineCounter) {
  * @returns
  */
 function colorLogLevels(line) {
-  const prefixPattern = /^\[LVL:(\d+)\]/;
+  const prefixPattern = /\[LVL:(\d+)\]/;
   const prefixMatch = line.match(prefixPattern);
   if (prefixMatch) {
     const fullMatch = prefixMatch[0];
@@ -650,10 +657,10 @@ function colorLogLevels(line) {
 /**
  * Renders the log text - highlights errors, warnings, and info messages.
  * Adds line numbers to the log text.
- * @param {string} logText - the log text to be rendered
+ * @param {string[]} logLines - the log text to be rendered
  * @returns {string} - the formatted log text as HTML
  */
-function renderLogText(logText) {
+function renderLogText(logLines) {
   let formattedLog = "";
   let lineCounter = 1;
 
@@ -661,19 +668,18 @@ function renderLogText(logText) {
   state.errorCounter = 0;
   state.warningCounter = 0;
 
-  const lines = logText.split("\n");
-  for (let line of lines) {
-    line = renderLine(line, lineCounter) + "<br />";
-    line = colorLogLevels(line);
-    formattedLog += line;
+  for (let i = 0; i < logLines.length; i++) {
+    logLines[i] = renderLine(logLines[i], lineCounter) + "<br />";
+    logLines[i] = colorLogLevels(logLines[i]);
     lineCounter++;
   }
+  formattedLog = logLines.join("");
   return `<span>${formattedLog}</span>`;
 }
 
 /**
  * Returns the offset of the toolbar.
- * @returns {number} - the offset of the toolbar
+ * @returns {number}
  */
 function getOffset() {
   return divToolbar.offsetHeight - 1;
