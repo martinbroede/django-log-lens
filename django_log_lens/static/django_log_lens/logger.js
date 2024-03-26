@@ -18,38 +18,36 @@ function getStackTrace() {
   return stack.slice(3, stack.length).join("\n");
 }
 
-window.customLogger = {
+const _customLogger = {
 
   csrfToken: getCSRFToken(),
   isEnabled: true,
   dateFormatter: (date) => date.toISOString().slice(0, 19).replace("T", " "),
   
   sendLogToServer: function (message, level) {
-    if (!customLogger.isEnabled) {
+    if (!_customLogger.isEnabled) {
       return;
     }
     fetch(window.customLoggerAPI, {
       method: "POST",
-      headers: { "X-CSRFToken": customLogger.csrfToken, "Content-Type": "application/json" },
+      headers: { "X-CSRFToken": _customLogger.csrfToken, "Content-Type": "application/json" },
       body: JSON.stringify({ error_message: message, severity: level }),
     })
       .then((response) => {
         if (response.status >= 400) {
           console.error("Logging Error (in .then block):", response.statusText);
-          customLogger.isEnabled = false;
+          _customLogger.isEnabled = false;
         }
       })
       .catch((error) => {
         console.error("Logging Error (in .catch block):", error);
-        customLogger.isEnabled = false;
+        _customLogger.isEnabled = false;
       });
   },
 
   errorHandler: (errorEvent) => {
-    const date = customLogger.dateFormatter(new Date());
-    const displayMessage = errorEvent.error.stack || String(errorEvent.error);
-    const errorMessage = `${date} CRITICAL:\nUncaught ErrorEvent\n${displayMessage}`;
-    customLogger.sendLogToServer(errorMessage, "CRITICAL");
+    const msg = errorEvent.error.stack || String(errorEvent.error);
+    _customLogger.sendLogToServer(msg, "CRITICAL");
   },
 
   log: (logLevel, args, stack) => {
@@ -64,12 +62,10 @@ window.customLogger = {
         }
       })
       .join(" ");
-    const date = customLogger.dateFormatter(new Date());
-    let logMessage = `${date} ${logLevel}:\n${message}`;
+    let logMessage = message;
     logMessage += stack ? `\n${stack}` : "";
-    logMessage = logMessage.replaceAll("\\n", "\n");
     logMessage = logMessage.replaceAll(">", "&gt;").replaceAll("<", "&lt;");
-    customLogger.sendLogToServer(logMessage, logLevel);
+    _customLogger.sendLogToServer(logMessage, logLevel);
   },
 
   logDebug: console.debug,
@@ -80,41 +76,43 @@ window.customLogger = {
   logAssertion: console.assert,
 };
 
-if (!customLogger.csrfToken) {
-  customLogger.isEnabled = false;
+window.customLogger = _customLogger;
+
+if (!_customLogger.csrfToken) {
+  _customLogger.isEnabled = false;
   console.log("Disabling customLogger because csrf token is missing.");
 }
 
 console.debug = function () {
-  customLogger.logDebug(...arguments);
-  customLogger.log("DEBUG", arguments, getStackTrace());
+  _customLogger.logDebug(...arguments);
+  _customLogger.log("DEBUG", arguments, getStackTrace());
 };
 
 console.log = function () {
-  customLogger.logLog(...arguments);
-  customLogger.log("DEBUG", arguments, getStackTrace());
+  _customLogger.logLog(...arguments);
+  _customLogger.log("DEBUG", arguments, getStackTrace());
 };
 
 console.info = function () {
-  customLogger.logInfo(...arguments);
-  customLogger.log("INFO", arguments, getStackTrace());
+  _customLogger.logInfo(...arguments);
+  _customLogger.log("INFO", arguments, getStackTrace());
 };
 
 console.warn = function () {
-  customLogger.logWarning(...arguments);
-  customLogger.log("WARNING", arguments, getStackTrace());
+  _customLogger.logWarning(...arguments);
+  _customLogger.log("WARNING", arguments, getStackTrace());
 };
 
 console.error = function () {
-  customLogger.logError(...arguments);
-  customLogger.log("ERROR", arguments, getStackTrace());
+  _customLogger.logError(...arguments);
+  _customLogger.log("ERROR", arguments, getStackTrace());
 };
 
 console.assert = function () {
-  customLogger.logAssertion(...arguments);
+  _customLogger.logAssertion(...arguments);
   if (!arguments[0]) {
-    customLogger.log("ASSERTION FAILED (CRITICAL)", arguments, getStackTrace());
+    _customLogger.log("ASSERTION FAILED (CRITICAL)", arguments, getStackTrace());
   }
 };
 
-window.addEventListener("error", customLogger.errorHandler);
+window.addEventListener("error", _customLogger.errorHandler);

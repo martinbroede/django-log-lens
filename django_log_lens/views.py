@@ -62,7 +62,7 @@ def log_js_error(request):
     log_message = log['error_message']
     log_level = log['severity']
     log_level_functional_map.get(log_level, client_logger.error)(log_message)
-    return HttpResponse("Error logged")
+    return HttpResponse("Log message processed.")
 
 
 @require_http_methods(["GET"])

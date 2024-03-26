@@ -66,11 +66,11 @@ const _bindings = {
 
 /**
  * Binds an element's value to an object's property.
- * @param {HTMLElement} elem
- * @param {object} obj
- * @param {string} objProp
- * @param {boolean} twoWay
- * @param {Function} onChangeCallback
+ * @param {HTMLElement} elem the HTML element to bind to
+ * @param {object} obj the object to bind to
+ * @param {string} objProp the name of the property on the object
+ * @param {boolean} twoWay whether the binding should be two-way or one-way
+ * @param {Function} onChangeCallback the callback function to be called when the property changes
  */
 function bindElementValue(elem, obj, objProp, twoWay = false, onChangeCallback = () => {}) {
   if (obj[objProp] === undefined) {
@@ -131,32 +131,41 @@ function bindElementAttr(elem, elemAttr, obj, objProp, twoWay = false, onChangeC
     elem.addEventListener("change", (event) => handler(event));
   }
   if (twoWay) {
-    bindBack(obj, objProp, elem, elemAttr);
-  }
-  function bindBack(obj, objProp, elem, elemAttr) {
-    const propId = _bindings.propCounter;
-    _bindings.propCounter++;
-    if (obj[objProp]) {
-      elem.setAttribute(elemAttr, obj[objProp]);
-    }
-    _bindings[`_${propId}`] = obj[objProp];
-    Object.defineProperty(obj, objProp, {
-      get() {
-        return _bindings[`_${propId}`];
-      },
-      set(value) {
-        _bindings[`_${propId}`] = value;
-        elem.setAttribute(elemAttr, value);
-        onChangeCallback(obj, objProp);
-      },
-    });
+    bindBack(obj, objProp, elem, elemAttr, onChangeCallback);
   }
 }
 
 /**
+ * Bind back the object property to the element attribute.
+ * @param {object} obj the object to bind to
+ * @param {string} objProp the name of the property on the object
+ * @param {HTMLElement} elem the HTML element to bind to
+ * @param {string} elemAttr the HTML attribute to bind to
+ * @param {Function} onChangeCallback the callback function to be called when the property changes
+ */
+function bindBack(obj, objProp, elem, elemAttr, onChangeCallback) {
+  const propId = _bindings.propCounter;
+  _bindings.propCounter++;
+  if (obj[objProp]) {
+    elem.setAttribute(elemAttr, obj[objProp]);
+  }
+  _bindings[`_${propId}`] = obj[objProp];
+  Object.defineProperty(obj, objProp, {
+    get() {
+      return _bindings[`_${propId}`];
+    },
+    set(value) {
+      _bindings[`_${propId}`] = value;
+      elem.setAttribute(elemAttr, value);
+      onChangeCallback(obj, objProp);
+    },
+  });
+}
+
+/**
  * Stores the obj[objProp] in the hash so that the page can be restored when refreshed.
- * @param {object} obj
- * @param {string} objProp
+ * @param {object} obj the object to be observed
+ * @param {string} objProp the property to be stored in the hash
  */
 function bindingObserverFn(obj, objProp) {
   window.location.hash = encodeURIComponent(btoa(JSON.stringify({ preservedState })));
@@ -180,6 +189,11 @@ function setUpEventListeners() {
   });
 }
 
+/**
+ * Handles the click event of the refresh button.
+ * Toggles the state of the button.
+ * @param {HTMLElement} btn The invoking button
+ */
 function onRefreshBtnClick(btn) {
   if (btn.getAttribute("state") === "on") {
     btn.setAttribute("state", "off");
@@ -188,6 +202,11 @@ function onRefreshBtnClick(btn) {
   }
 }
 
+/**
+ * Handles the click event of the prompt confirm button.
+ * Hides the prompt and calls the confirm callback.
+ * @returns {void}
+ */
 function promptOnConfirm() {
   divOverlay.style.display = "none";
   const input = inputPrompt.value;
@@ -197,6 +216,12 @@ function promptOnConfirm() {
   }
 }
 
+/**
+ * Shows a prompt to the user with the given message.
+ * @param {string} message the message to be displayed
+ * @param {Function} confirmCallback the callback to be called when the user confirms
+ * @param {Function} cancelCallback the callback to be called when the user cancels
+ */
 function prompt(message, confirmCallback, cancelCallback) {
   pPromptText.innerText = message;
   divOverlay.style.display = "block";
@@ -205,6 +230,11 @@ function prompt(message, confirmCallback, cancelCallback) {
   promptCancelCallback = cancelCallback;
 }
 
+/**
+ * Handles the click event of the prompt cancel button.
+ * Hides the prompt and calls the cancel callback.
+ * @returns {void}
+ */
 function promptOnCancel() {
   divOverlay.style.display = "none";
   inputPrompt.value = "";
@@ -237,7 +267,7 @@ function showMessageToast(message, color) {
 }
 
 /**
- * Toggle the visibility of the toolbar extension.
+ * Toggles the visibility of the toolbar extension.
  * Changes the text of the button accordingly.
  * @param {HTMLElement} btn the invoking button
  */
@@ -466,14 +496,18 @@ function fetchLogfile(handlerName) {
         showMessageToast("Logfile has not changed.", "cyan-color");
         return null;
       }
+
       state.lastLogDataTimeStamp = jsonResponse.timestamp;
       state.lastSelectedHandlerName = handlerName;
       tdHandlerName.innerText = handlerName;
-      const lines = checkAndSplitLogFile(logText) || [];
+
+      adjustLogContentMargin();
+      checkLogFileLength(logText);
       showMessageToast("Fetched log file.", "green-color");
+
       setTimeout(() => {
-        finalizeFetch(lines, handlerName);
-      }, 10); // set timeout to allow the toast to be displayed
+        finalize(logText, handlerName);
+      }, 250); // set timeout to allow the toast to be displayed
     })
     .catch((error) => {
       showMessageToast(error.message || "Error fetching log file.", "light-red-color");
@@ -482,19 +516,19 @@ function fetchLogfile(handlerName) {
 }
 
 /**
- * Finalizes the fetch of the log file.
+ * Finalizes the log text after fetching the log file.
  * - Renders the log text
  * - Updates the line counter
  * - Updates the error and warning counter
  * - Updates the log file name
  * - Scrolls to the bottom of the page
- * @param {string[]} lines
+ * @param {string} logText
  * @param {string} handlerName
  * @returns {void}
  */
-function finalizeFetch(lines, handlerName) {
-  preLogContent.innerHTML = renderLogText(lines);
-  tdLineCounter.innerText = lines.length;
+function finalize(logText, handlerName) {
+  preLogContent.innerHTML = renderLogText(logText);
+  tdLineCounter.innerText = logText.split("\n").length;
   tdErrorCountElem.innerText = state.errorCounter;
   tdWarningCount.innerText = state.warningCounter;
   h3LogfileName.innerText = state.filePaths[handlerName];
@@ -504,30 +538,92 @@ function finalizeFetch(lines, handlerName) {
 /**
  * Checks if the log file is too large to render.
  * If it is, the log content is cleared and an error is thrown.
- * Otherwise, the log file is split into lines.
- * @param {string} logText
- * @returns {string[]} - the lines of the log file
+ * @param {string} logText the log text to be checked
+ * @returns {void}
  */
-function checkAndSplitLogFile(logText) {
-  adjustLogContentMargin();
-  const lines = logText.split("\n");
-  if (lines.length > 100000) {
+function checkLogFileLength(logText) {
+  const lineCounter = logText.split("\n").length;
+  if (lineCounter > 1000) {
     preLogContent.innerHTML = "";
     tdErrorCountElem.innerText = "?";
     tdWarningCount.innerText = "?";
-    tdLineCounter.innerText = lines.length;
+    tdLineCounter.innerText = String(lineCounter);
     throw Error("Logfile is too large to render.");
   }
-  return lines;
+}
+
+function renderLine(line, lineCounter) {
+  const matchesStringRegex = line.match(/"([^"]+)"/g);
+  const matchesLineNumberRegex = line.match(/, line \b\d+\b,/g);
+  const containsUrlRegex = /\bhttps?:\/\/[^/]+(\/[^/]+)\b/;
+
+  if (matchesStringRegex && matchesLineNumberRegex) {
+    const lineNumber = matchesLineNumberRegex[matchesLineNumberRegex.length - 1]
+      .replace(/, line /g, "")
+      .replace(/,/g, "");
+    let filename = matchesStringRegex[matchesStringRegex.length - 1].replace(/"/g, "");
+    line = line.replace(
+      /"([^"]+)"/g,
+      `"<span class="quoted-text" line_number=${lineNumber} onclick="copyElementToClipboard(this)">$1</span>"`
+    );
+    line += ` <a  id="a-${lineCounter}" href="javascript:openInVsCode(document.getElementById(\`a-${lineCounter}\`))"
+                        title="open in VS Code"
+                        file_name="${filename}"
+                        line_number="${lineNumber}"> &uarr; </a>`;
+  } else if (matchesStringRegex) {
+    line = line.replace(/"([^"]+)"/g, '"<span class="quoted-text" onclick="copyElementToClipboard(this)">$1</span>"');
+  } else if (containsUrlRegex.test(line)) {
+    const urlRegex = /\bhttps?:\/\/[^/]+(\/[^/]+)*\b(?=\))/g;
+    const url = line.match(urlRegex) ? line.match(urlRegex)[0] : null;
+    line = line.replace(urlRegex, `<span class="url" onclick="copyElementToClipboard(this)">$&</span>`);
+    if (url) {
+      line += ` <a  id="a-${lineCounter}" href="javascript:openInVsCode(document.getElementById(\`a-${lineCounter}\`))"
+                        title="open in VS Code"
+                        file_name="${url}"> &uarr; </a>`;
+    }
+  }
+
+  line = line.replace(/'([^']+)'/g, `'<span class="quoted-text" onclick="copyElementToClipboard(this)">$1</span>'`);
+  return line;
+}
+
+/**
+ * Colors the log lines based on the log level that
+ * are extracted from the [LVL:XX] prefix.
+ * @param {string} line 
+ * @returns 
+ */
+function colorLogLevels(line) {
+  const prefixPattern = /^\[LVL:(\d+)\]/;
+  const prefixMatch = line.match(prefixPattern);
+  if (prefixMatch) {
+    const fullMatch = prefixMatch[0];
+    const logLevel = parseInt(prefixMatch[1]);
+    if (logLevel >= 50) {
+      line = line.replace(fullMatch, `</span><span id="error-${state.errorCounter}" class="critical">`);
+      state.errorCounter++;
+    } else if (logLevel >= 40) {
+      line = line.replace(fullMatch, `</span><span id="error-${state.errorCounter}" class="error">`);
+      state.errorCounter++;
+    } else if (logLevel >= 30) {
+      line = line.replace(fullMatch, `</span><span class="warning">`);
+      state.warningCounter++;
+    } else if (logLevel >= 20) {
+      line = line.replace(fullMatch, `</span><span class="info">`);
+    } else {
+      line = line.replace(fullMatch, `</span><span class="debug">`);
+    }
+  }
+  return line;
 }
 
 /**
  * Renders the log text - highlights errors, warnings, and info messages.
  * Adds line numbers to the log text.
- * @param {string[]} lineArray
+ * @param {string} logText - the log text to be rendered
  * @returns {string} - the formatted log text as HTML
  */
-function renderLogText(lineArray) {
+function renderLogText(logText) {
   let formattedLog = "";
   let lineCounter = 1;
 
@@ -535,60 +631,36 @@ function renderLogText(lineArray) {
   state.errorCounter = 0;
   state.warningCounter = 0;
 
-  lineArray.forEach((line) => {
-    const matchesStringRegex = line.match(/"([^"]+)"/g);
-    const matchesLineNumberRegex = line.match(/, line \b\d+\b,/g);
-    const containsUrlRegex = /\bhttps?:\/\/[^/]+(\/[^/]+)\b/;
-    if (matchesStringRegex && matchesLineNumberRegex) {
-      const lineNumber = matchesLineNumberRegex[matchesLineNumberRegex.length - 1]
-        .replace(/, line /g, "")
-        .replace(/,/g, "");
-      let filename = matchesStringRegex[matchesStringRegex.length - 1].replace(/"/g, "");
-      line = line.replace(
-        /"([^"]+)"/g,
-        `"<span class="quoted-text" line_number=${lineNumber} onclick="copyElementToClipboard(this)">$1</span>"`
-      );
-      line += ` <a  id="a-${lineCounter}" href="javascript:openInVsCode(document.getElementById(\`a-${lineCounter}\`))"
-                        title="open in VS Code"
-                        file_name="${filename}"
-                        line_number="${lineNumber}"> &uarr; </a>`;
-    } else if (matchesStringRegex) {
-      line = line.replace(/"([^"]+)"/g, '"<span class="quoted-text" onclick="copyElementToClipboard(this)">$1</span>"');
-    } else if (containsUrlRegex.test(line)) {
-      const urlRegex = /\bhttps?:\/\/[^/]+(\/[^/]+)*\b(?=\))/g;
-      const url = line.match(urlRegex) ? line.match(urlRegex)[0] : null;
-      line = line.replace(urlRegex, `<span class="url" onclick="copyElementToClipboard(this)">$&</span>`);
-      if (url) {
-        line += ` <a  id="a-${lineCounter}" href="javascript:openInVsCode(document.getElementById(\`a-${lineCounter}\`))"
-                        title="open in VS Code"
-                        file_name="${url}"> &uarr; </a>`;
-      }
-    }
-    line = line.replace(/'([^']+)'/g, `'<span class="quoted-text" onclick="copyElementToClipboard(this)">$1</span>'`);
-    if (line.includes("CRITICAL") | line.includes("Critical:") | line.includes("critical:")) {
-      line = `<span id="error-${state.errorCounter}" class="critical">${line}</span><br>`;
-      state.errorCounter++;
-    } else if (line.includes("ERROR") | line.includes("Error:") | line.includes("error:")) {
-      line = `<span id="error-${state.errorCounter}" class="error">${line}</span><br>`;
-      state.errorCounter++;
-    } else if (line.includes("WARNING") | line.includes("Warning:") | line.includes("warning:")) {
-      state.warningCounter++;
-      line = `<span class="warning">${line}</span><br>`;
-    } else if (line.includes("INFO") | line.includes("Info:") | line.includes("info:")) {
-      line = `<span class="info">${line}</span><br>`;
-    } else if (line.includes("DEBUG") | line.includes("Debug:") | line.includes("debug:")) {
-      line = `<span class="debug">${line}</span><br>`;
-    } else {
-      line = line + "<br>";
-    }
-    const lineCounterHTML = `<span id='line-${lineCounter}' class='line-counter'>`.concat(
-      lineCounter.toString().padStart(5),
-      "</span>"
-    );
-    formattedLog += lineCounterHTML + line;
+  const lines = logText.split("\n");
+  for (let line of lines) {
+    line = renderLine(line, lineCounter) + "<br />";
+    line = colorLogLevels(line);
+    formattedLog += line;
     lineCounter++;
-  });
-  return formattedLog;
+  }
+
+  // if (line.includes("CRITICAL") | line.includes("Critical:") | line.includes("critical:")) {
+  //   line = `<span id="error-${state.errorCounter}" class="critical">${line}</span><br>`;
+  //   state.errorCounter++;
+  // } else if (line.includes("ERROR") | line.includes("Error:") | line.includes("error:")) {
+  //   line = `<span id="error-${state.errorCounter}" class="error">${line}</span><br>`;
+  //   state.errorCounter++;
+  // } else if (line.includes("WARNING") | line.includes("Warning:") | line.includes("warning:")) {
+  //   state.warningCounter++;
+  //   line = `<span class="warning">${line}</span><br>`;
+  // } else if (line.includes("INFO") | line.includes("Info:") | line.includes("info:")) {
+  //   line = `<span class="info">${line}</span><br>`;
+  // } else if (line.includes("DEBUG") | line.includes("Debug:") | line.includes("debug:")) {
+  //   line = `<span class="debug">${line}</span><br>`;
+  // } else {
+  //   line = line + "<br>";
+  // }
+  // const lineCounterHTML = `<span id='line-${lineCounter}' class='line-counter'>`.concat(
+  //   lineCounter.toString().padStart(5),
+  //   "</span>"
+  // );
+  // formattedLog += lineCounterHTML + line;
+  return `<span>${formattedLog}</span>`;
 }
 
 /**
