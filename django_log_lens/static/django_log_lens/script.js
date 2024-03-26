@@ -1,17 +1,18 @@
 "use strict";
-
 const btnAutoRefresh = document.getElementById("btn-auto-refresh");
+const divLogContent = document.getElementById("div-log-content");
 const divMessageToast = document.getElementById("div-message-toast");
 const divOverlay = document.getElementById("div-overlay");
 const divPrompt = document.getElementById("div-prompt");
 const divToolbar = document.getElementById("div-toolbar");
 const divToolbarExtension = document.getElementById("div-toolbar-extension");
 const h3LogfileName = document.getElementById("h3-logfile-name");
-const inputPathPrefix = document.getElementById("input-path-prefix");
-const inputPathSplitter = document.getElementById("input-path-splitter");
-const inputPrompt = document.getElementById("input-prompt");
+const inputPathPrefix = /** @type {HTMLInputElement} */ (document.getElementById("input-path-prefix"));
+const inputPathSplitter = /** @type {HTMLInputElement} */ (document.getElementById("input-path-splitter"));
+const inputPrompt = /** @type {HTMLInputElement} */ (document.getElementById("input-prompt"));
 const pMessageToastText = document.getElementById("p-message-toast-text");
 const pPromptText = document.getElementById("p-prompt-text");
+const preLineCounter = document.getElementById("pre-line-counter");
 const preLogContent = document.getElementById("pre-log-content");
 const tableFilePaths = document.getElementById("table-file-paths");
 const tdErrorCountElem = document.getElementById("td-number-of-errors");
@@ -19,24 +20,32 @@ const tdHandlerName = document.getElementById("td-handler-name");
 const tdLineCounter = document.getElementById("td-number-of-lines");
 const tdWarningCount = document.getElementById("td-number-of-warnings");
 
-console.assert(btnAutoRefresh, "Could not find auto refresh button.");
-console.assert(divMessageToast, "Could not find message toast div.");
-console.assert(divOverlay, "Could not find overlay div.");
-console.assert(divPrompt, "Could not find prompt div.");
-console.assert(divToolbar, "Could not find toolbar div.");
-console.assert(divToolbarExtension, "Could not find toolbar extension div.");
-console.assert(h3LogfileName, "Could not find logfile name h3.");
-console.assert(inputPathPrefix, "Could not find path prefix input.");
-console.assert(inputPathSplitter, "Could not find path splitter input.");
-console.assert(inputPrompt, "Could not find prompt input.");
-console.assert(pMessageToastText, "Could not find message toast text paragraph.");
-console.assert(pPromptText, "Could not find prompt text paragraph.");
-console.assert(preLogContent, "Could not find log content pre.");
-console.assert(tableFilePaths, "Could not find file path table.");
-console.assert(tdErrorCountElem, "Could not find error count element.");
-console.assert(tdHandlerName, "Could not find handler name element.");
-console.assert(tdLineCounter, "Could not find line counter.");
-console.assert(tdWarningCount, "Could not find warning count element.");
+const HTML_ELEMENTS = [
+  btnAutoRefresh,
+  divLogContent,
+  divMessageToast,
+  divOverlay,
+  divPrompt,
+  divToolbar,
+  divToolbarExtension,
+  h3LogfileName,
+  inputPathPrefix,
+  inputPathSplitter,
+  inputPrompt,
+  pMessageToastText,
+  pPromptText,
+  preLineCounter,
+  preLogContent,
+  tableFilePaths,
+  tdErrorCountElem,
+  tdHandlerName,
+  tdLineCounter,
+  tdWarningCount,
+];
+
+for (let elem of HTML_ELEMENTS) {
+  console.assert(Boolean(elem), `Element not found.`);
+}
 
 const state = {
   currentError: -1,
@@ -57,8 +66,8 @@ const preservedState = {
   stringReplaceValue: "",
 };
 
-let promptCancelCallback = () => {};
-let promptConfirmCallback = () => {};
+let promptCancelCallback = /** @type Function */ ((...args) => {});
+let promptConfirmCallback = /** @type Function */ ((...args) => {});
 
 const _bindings = {
   propCounter: 0,
@@ -66,7 +75,7 @@ const _bindings = {
 
 /**
  * Binds an element's value to an object's property.
- * @param {HTMLElement} elem the HTML element to bind to
+ * @param {HTMLInputElement} elem the HTML element to bind to
  * @param {object} obj the object to bind to
  * @param {string} objProp the name of the property on the object
  * @param {boolean} twoWay whether the binding should be two-way or one-way
@@ -126,9 +135,9 @@ function bindElementAttr(elem, elemAttr, obj, objProp, twoWay = false, onChangeC
     }
   };
   if (elem.tagName === "BUTTON") {
-    elem.addEventListener("click", (event) => handler(event));
+    elem.addEventListener("click", handler);
   } else {
-    elem.addEventListener("change", (event) => handler(event));
+    elem.addEventListener("change", handler);
   }
   if (twoWay) {
     bindBack(obj, objProp, elem, elemAttr, onChangeCallback);
@@ -247,7 +256,7 @@ function promptOnCancel() {
  * Shows a message toast with the given message and color.
  * Uses a default color if none is provided.
  * @param {string} message
- * @param {string | undefined} color
+ * @param {string=} color
  */
 function showMessageToast(message, color) {
   if (color) {
@@ -285,7 +294,7 @@ function toggleToolbarExtensionVisibility(btn) {
 
 /**
  * Fetches the timestamp of the log file to check if it has changed.
- * @param {string} handlerName
+ * @param {string=} handlerName
  * @returns {void}
  */
 function requestLogfileTimestamp(handlerName) {
@@ -293,6 +302,7 @@ function requestLogfileTimestamp(handlerName) {
   if (!handlerName) {
     return;
   }
+  // @ts-ignore
   fetch(requestLogfileTimestampURL + handlerName)
     .then((response) => response.json())
     .then((data) => {
@@ -375,6 +385,8 @@ function getCsrf() {
  */
 function fetchFilePaths() {
   showMessageToast("Fetching file paths...");
+
+  // @ts-ignore
   fetch(requestLogFilePathsURL)
     .then((response) => response.json())
     .then((data) => {
@@ -424,6 +436,7 @@ function clearLogFile(handlerName) {
   if (!handlerName) {
     return;
   }
+  // @ts-ignore
   fetch(clearLogFileURL + handlerName, {
     method: "DELETE",
     headers: { "X-CSRFToken": getCsrf() },
@@ -449,7 +462,7 @@ function clearLogFile(handlerName) {
  * @returns {void}
  */
 function adjustLogContentMargin() {
-  preLogContent.style.marginTop = getOffset() + "px";
+  divLogContent.style.marginTop = getOffset() + "px";
 }
 
 /**
@@ -470,7 +483,7 @@ function handleFetchLogFileError(response) {
  * Fetches the log file of the given handler name.
  * If no handler name is provided, the last selected handler name is used.
  * If no handler name is available, a message is displayed to the user.
- * @param {string} handlerName
+ * @param {string=} handlerName
  * @returns {void}
  */
 function fetchLogfile(handlerName) {
@@ -482,7 +495,7 @@ function fetchLogfile(handlerName) {
       return;
     }
   }
-
+  // @ts-ignore
   fetch(requestLogfileURL + handlerName)
     .then((response) => {
       if (response.status >= 400) {
@@ -527,12 +540,29 @@ function fetchLogfile(handlerName) {
  * @returns {void}
  */
 function finalize(logText, handlerName) {
+  const logTextLineCounter = logText.split("\n").length;
   preLogContent.innerHTML = renderLogText(logText);
-  tdLineCounter.innerText = logText.split("\n").length;
-  tdErrorCountElem.innerText = state.errorCounter;
-  tdWarningCount.innerText = state.warningCounter;
+  tdLineCounter.innerText = String(logTextLineCounter);
+  tdErrorCountElem.innerText = String(state.errorCounter);
+  tdWarningCount.innerText = String(state.warningCounter);
   h3LogfileName.innerText = state.filePaths[handlerName];
+  addLineNumbers(logTextLineCounter);
   window.scrollTo(0, document.body.scrollHeight);
+}
+
+/**
+ * Adds line numbers to the line counter.
+ * @param {number} noOfLines
+ */
+function addLineNumbers(noOfLines) {
+  preLineCounter.innerHTML = "";
+  for (let i = 0; i < noOfLines; i++) {
+    const lineCounterHTML = `<span id='line-${i + 1}' class='line-counter'>`.concat(
+      (i + 1).toString().padStart(5, "0"),
+      "</span>"
+    );
+    preLineCounter.innerHTML += lineCounterHTML + "<br />";
+  }
 }
 
 /**
@@ -543,7 +573,7 @@ function finalize(logText, handlerName) {
  */
 function checkLogFileLength(logText) {
   const lineCounter = logText.split("\n").length;
-  if (lineCounter > 1000) {
+  if (lineCounter > 25000) {
     preLogContent.innerHTML = "";
     tdErrorCountElem.innerText = "?";
     tdWarningCount.innerText = "?";
@@ -590,8 +620,8 @@ function renderLine(line, lineCounter) {
 /**
  * Colors the log lines based on the log level that
  * are extracted from the [LVL:XX] prefix.
- * @param {string} line 
- * @returns 
+ * @param {string} line
+ * @returns
  */
 function colorLogLevels(line) {
   const prefixPattern = /^\[LVL:(\d+)\]/;
@@ -638,28 +668,6 @@ function renderLogText(logText) {
     formattedLog += line;
     lineCounter++;
   }
-
-  // if (line.includes("CRITICAL") | line.includes("Critical:") | line.includes("critical:")) {
-  //   line = `<span id="error-${state.errorCounter}" class="critical">${line}</span><br>`;
-  //   state.errorCounter++;
-  // } else if (line.includes("ERROR") | line.includes("Error:") | line.includes("error:")) {
-  //   line = `<span id="error-${state.errorCounter}" class="error">${line}</span><br>`;
-  //   state.errorCounter++;
-  // } else if (line.includes("WARNING") | line.includes("Warning:") | line.includes("warning:")) {
-  //   state.warningCounter++;
-  //   line = `<span class="warning">${line}</span><br>`;
-  // } else if (line.includes("INFO") | line.includes("Info:") | line.includes("info:")) {
-  //   line = `<span class="info">${line}</span><br>`;
-  // } else if (line.includes("DEBUG") | line.includes("Debug:") | line.includes("debug:")) {
-  //   line = `<span class="debug">${line}</span><br>`;
-  // } else {
-  //   line = line + "<br>";
-  // }
-  // const lineCounterHTML = `<span id='line-${lineCounter}' class='line-counter'>`.concat(
-  //   lineCounter.toString().padStart(5),
-  //   "</span>"
-  // );
-  // formattedLog += lineCounterHTML + line;
   return `<span>${formattedLog}</span>`;
 }
 
@@ -736,8 +744,8 @@ function copyElementToClipboard(HTMLElement) {
 function goToLineWidId(id) {
   const scrollOffset = getOffset();
   try {
-    id = parseInt(id);
-    const line = document.getElementById("line-" + id);
+    const _id = parseInt(id);
+    const line = document.getElementById("line-" + _id);
     line.scrollIntoView();
     window.scroll(0, window.scrollY - scrollOffset);
   } catch {}
@@ -824,6 +832,7 @@ function setUpPage() {
       requestLogfileTimestamp();
     }, 2 * state.timeout);
   };
+  adjustLogContentMargin();
 }
 
 setUpPage();
