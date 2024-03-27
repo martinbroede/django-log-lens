@@ -11,6 +11,11 @@
     {% csrf_token %}
     <div id="div-toolbar" class="fixed">
       <div class="toolbar-block">
+        <button id="btn-show-on-github" class="info" onclick="window.open('https://github.com/martinbroede/django-log-lens', '_blank')">
+          <img src="{% static 'django_log_lens/favicon-cyan.svg' %}" alt="GitHub" />
+          &nbsp;Django Log Lens
+        </button>
+
         <form style="display: inline-block" method="post" action="{% url 'log-lens:logout' %}">
           {% csrf_token %}
           <button type="submit">
@@ -50,6 +55,8 @@
       <br />
 
       <div id="div-toolbar-extension">
+        <hr />
+        <br />
         <table id="table-statistics">
           <tr>
             <td>Handler Name</td>
@@ -79,6 +86,7 @@
         </table>
 
         <br />
+
         <button id="btn-auto-refresh" state="off" onclick="onRefreshBtnClick(this)">Auto Refresh</button>
         <h3 id="h3-logfile-name"></h3>
       </div>

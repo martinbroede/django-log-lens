@@ -56,7 +56,7 @@ const _customLogger = {
         if (arg instanceof Error) {
           return "\n" + arg.stack;
         } else if (typeof arg === "object") {
-          return JSON.stringify(arg, 2);
+          return JSON.stringify(arg, null, 2);
         } else {
           return String(arg);
         }

@@ -125,7 +125,7 @@ h3 {
 }
 
 hr {
-  background-color: var(--control-elem-color);
+  background-color: var(--highlight-color);
   border: 0;
   height: 1px;
   margin: 0;
@@ -164,7 +164,7 @@ button[state="off"]::before {
 
 button:hover,
 input:hover {
-  background-color: var(--lighter-background);
+  background-color: #0005;
 }
 
 button:active,
@@ -266,11 +266,16 @@ tr:last-child td {
 }
 
 #div-message-toast,
+#div-prompt {
+  background-color: var(--toolbar-color);
+  border: 1px solid var(--neutral-color);
+  border-radius: calc(var(--padding) * 2);
+}
+
+
+#div-message-toast,
 #div-prompt,
 #div-login {
-  background-color: var(--toolbar-color);
-  border-radius: calc(var(--padding) * 2);
-  border: 1px solid var(--neutral-color);
   top: 50%;
   color: var(--control-elem-color);
   display: none;
@@ -291,4 +296,17 @@ tr:last-child td {
 
 #btn-auto-refresh {
   margin-bottom: calc(2 * var(--padding));
+}
+
+#btn-show-on-github img {
+  position: relative;
+  top: 20px;
+  height: 48px;
+}
+#btn-show-on-github {
+  border: none;
+  margin-top: -6px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  background-color: var(--toolbar-color);
 }

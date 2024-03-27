@@ -1,0 +1,49 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  version="1.1"
+  width="32px"
+  height="32px"
+  viewBox="-0.5 -0.5 197 197">
+  <defs/>
+  <g>
+    <ellipse
+      cx="98.5"
+      cy="98.5"
+      rx="86.5"
+      ry="86.5"
+      fill="#22262e"
+      stroke="none"
+      pointer-events="all"/>
+    <path
+      d="M 128 98 L 38 98"
+      fill="none"
+      stroke="#ff5555"
+      stroke-width="24"
+      stroke-miterlimit="10"
+      pointer-events="stroke"/>
+    <path
+      d="M 178 138 L 38 138"
+      fill="none"
+      stroke="#ffb86c"
+      stroke-width="24"
+      stroke-miterlimit="10"
+      pointer-events="stroke"/>
+    <path
+      d="M 148 58 L 38 58"
+      fill="none"
+      stroke="#50fa7b"
+      stroke-width="24"
+      stroke-miterlimit="10"
+      pointer-events="stroke"/>
+    <ellipse
+      cx="98.5"
+      cy="98.5"
+      rx="86.5"
+      ry="86.5"
+      fill="#0000"
+      stroke="#8be9fd"
+      stroke-width="24"
+      pointer-events="all"/>
+  </g>
+</svg>

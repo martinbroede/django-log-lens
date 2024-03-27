@@ -1,0 +1,69 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  version="1.1"
+  width="1122px"
+  height="282px"
+  viewBox="-0.5 -0.5 1122 282">
+  <defs/>
+  <g>
+    <rect
+      x="0"
+      y="0"
+      width="1120"
+      height="280"
+      rx="140"
+      ry="140"
+      fill="#182838"
+      stroke="none"
+      pointer-events="all"/>
+    <path
+      d="M 170 140 L 80 140"
+      fill="none"
+      stroke="#ff5555"
+      stroke-width="24"
+      stroke-miterlimit="10"
+      pointer-events="stroke"/>
+    <path
+      d="M 220 180 L 80 180"
+      fill="none"
+      stroke="#ffb86c"
+      stroke-width="24"
+      stroke-miterlimit="10"
+      pointer-events="stroke"/>
+    <path
+      d="M 190 100 L 80 100"
+      fill="none"
+      stroke="#50fa7b"
+      stroke-width="24"
+      stroke-miterlimit="10"
+      pointer-events="stroke"/>
+    <ellipse
+      cx="140.5"
+      cy="140.5"
+      rx="86.5"
+      ry="86.5"
+      fill="#0000"
+      stroke="#8be9fd"
+      stroke-width="24"
+      pointer-events="all"/>
+    <rect
+      x="260"
+      y="95"
+      width="830"
+      height="90"
+      fill="none"
+      stroke="none"
+      pointer-events="all"/>
+    <g transform="translate(-0.5 -0.5)">
+      <text
+        x="675"
+        y="167"
+        fill="#8be9fd"
+        font-family="Courier New"
+        font-size="90px"
+        text-anchor="middle"
+        font-weight="bold">Django Log Lens</text>
+    </g>
+  </g>
+</svg>

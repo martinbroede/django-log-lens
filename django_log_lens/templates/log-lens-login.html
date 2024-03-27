@@ -11,11 +11,14 @@
   </head>
   <body>
     <div id="div-overlay">
-      <div id="div-login" style="display: block; top: 25%">
+      <div id="div-login" style="display: block; top: 10%">
+        <br />
         <form method="post">
           {% csrf_token %}
-          <h1>Login</h1>
-          <p class="info">Log in with a superuser account to manage your logs</p>
+          <img style="width: 40%" src="{% static 'django_log_lens/logo.svg' %}" alt="Django Log Lens" />
+          <br />
+          <br />
+          <p>Log in with a superuser account</p>
           <p class="error">{{ error_message }}</p>
           <label for="username">Username:</label>
           <input type="text" name="username" id="username" required />
@@ -25,8 +28,18 @@
           <br />
           <br />
           <br />
-          <button type="submit" style="width: 50%"><br />Login<br />&nbsp;</button>
+          <button
+            type="submit"
+            class="info"
+            style="width: 40%; border-radius: 999px; border: 0; font-size: x-large; font-weight: bold"
+          >
+            <br />
+            Login
+            <br />
+            &nbsp;
+          </button>
         </form>
+        <br />
       </div>
     </div>
   </body>
