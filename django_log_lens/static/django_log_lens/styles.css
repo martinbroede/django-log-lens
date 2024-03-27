@@ -164,7 +164,7 @@ button[state="off"]::before {
 
 button:hover,
 input:hover {
-  background-color: #0005;
+  background-color: #00ffff12;
 }
 
 button:active,
@@ -271,7 +271,6 @@ tr:last-child td {
   border: 1px solid var(--neutral-color);
   border-radius: calc(var(--padding) * 2);
 }
-
 
 #div-message-toast,
 #div-prompt,
