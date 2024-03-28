@@ -99,7 +99,7 @@ body {
 pre {
   margin: 0;
   padding: 0;
-  font-size: larger;
+  font-size: 1rem;
 }
 
 label {
@@ -232,7 +232,7 @@ tr:last-child td {
 }
 
 #pre-line-counter {
-  width: 50px;
+  min-width: 54px;
   margin-left: 4px;
   border-right: 1px solid #ccc;
   background-color: var(--lighter-background-color);
@@ -261,7 +261,7 @@ tr:last-child td {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 2;
 }
 
@@ -275,18 +275,20 @@ tr:last-child td {
 #div-message-toast,
 #div-prompt,
 #div-login {
-  top: 50%;
+  align-items: center; /* vertically center */
   color: var(--control-elem-color);
-  display: none;
+  display: flex;
   font-size: larger;
   font-weight: bold;
+  justify-content: center; /* horizontally center */
   left: 25%;
-  right: 25%;
   min-height: 10%;
   min-width: 40%;
   padding: var(--padding);
   position: fixed;
+  right: 25%;
   text-align: center;
+  top: 50%;
 }
 
 #div-prompt input {

@@ -272,7 +272,7 @@ function showMessageToast(message, color) {
   }
 
   pMessageToastText.innerHTML = message.replaceAll("\n", "<br/>");
-  divMessageToast.style.display = "block";
+  divMessageToast.style.display = "flex";
   if (state.timeOutId) {
     clearTimeout(state.timeOutId);
   }
@@ -316,7 +316,7 @@ function requestLogfileTimestamp(handlerName) {
         if (btnAutoRefresh.getAttribute("state") === "on") {
           fetchLogfile();
         } else {
-          showMessageToast("Logfile has changed.\nClick refresh for an update.", "yellow-color");
+          showMessageToast("Logfile has been changed\nClick refresh for an update", "yellow-color");
         }
       }
     })
@@ -399,7 +399,7 @@ function fetchFilePaths() {
       state.filePaths = data;
       if (Object.keys(data).length === 0) {
         showMessageToast(
-          "You need to set up a LOGGING configuration\n in your settings.py\n in order to manage your logs here.",
+          "You need to set up a LOGGING configuration\n in your settings.py\n in order to manage your logs here",
           "light-red-color"
         );
         tableFilePaths.style.display = "none";
@@ -407,11 +407,11 @@ function fetchFilePaths() {
       } else {
         tableFilePaths.style.display = "";
         renderFilePathTable(data);
-        showMessageToast("Fetched file paths.", "green-color");
+        showMessageToast("Fetched file paths", "green-color");
       }
     })
     .catch((error) => {
-      showMessageToast("Error fetching file paths.", "light-red-color");
+      showMessageToast("Error fetching file paths", "light-red-color");
       console.error("Error fetching file paths:", error);
     });
 }
@@ -422,7 +422,7 @@ function fetchFilePaths() {
  * @returns {void}
  */
 function promptClearLogFile(handlerName) {
-  const callbackCanceled = () => showMessageToast("Did NOT clear logfile.", "light-red-color");
+  const callbackCanceled = () => showMessageToast("Did NOT clear logfile", "light-red-color");
   const callbackConfirmed = (promptText) => {
     if (promptText === handlerName) {
       clearLogFile(handlerName);
@@ -455,10 +455,10 @@ function clearLogFile(handlerName) {
     })
     .then(() => {
       fetchLogfile();
-      showMessageToast("Cleared logfile of '" + handlerName + "'.", "green-color");
+      showMessageToast(`Cleared logfile of '${handlerName}'`, "green-color");
     })
     .catch((error) => {
-      showMessageToast("Error clearing file.", "light-red-color");
+      showMessageToast("Error clearing file", "light-red-color");
       console.error("Error clearing file:", error);
     });
 }
@@ -482,7 +482,7 @@ function handleFetchLogFileError(response) {
     adjustLogContentMargin();
     preLogContent.innerText = text;
   });
-  throw Error("Error fetching log file.");
+  throw Error("Error fetching log file");
 }
 
 /**
@@ -497,7 +497,7 @@ function fetchLogfile(handlerName) {
   if (!handlerName) {
     handlerName = state.lastSelectedHandlerName;
     if (!handlerName) {
-      showMessageToast("No handler selected.", "light-red-color");
+      showMessageToast("No handler selected", "light-red-color");
       return;
     }
   }
@@ -512,7 +512,7 @@ function fetchLogfile(handlerName) {
     .then((jsonResponse) => {
       let logText = jsonResponse.text;
       if (jsonResponse.timestamp === state.lastLogDataTimeStamp && handlerName === state.lastSelectedHandlerName) {
-        showMessageToast("Logfile has not changed.", "cyan-color");
+        showMessageToast("No changes detected", "cyan-color");
         return null;
       }
 
@@ -522,14 +522,14 @@ function fetchLogfile(handlerName) {
 
       adjustLogContentMargin();
       checkLogFileLength(logText);
-      showMessageToast("Fetched log file.", "green-color");
+      showMessageToast("Fetched log file", "green-color");
 
       setTimeout(() => {
         finalize(logText, handlerName);
       }, 250); // set timeout to allow the toast to be displayed
     })
     .catch((error) => {
-      showMessageToast(error.message || "Error fetching log file.", "light-red-color");
+      showMessageToast(error.message || "Error fetching log file", "light-red-color");
       console.error("Error fetching log file:", error);
     });
 }
@@ -580,12 +580,13 @@ function addLineNumbers(noOfLines) {
  */
 function checkLogFileLength(logText) {
   const lineCounter = logText.split("\n").length;
-  if (lineCounter > 25000) {
+  if (lineCounter > 99999) {
+    preLineCounter.innerHTML = "";
     preLogContent.innerHTML = "";
     tdErrorCountElem.innerText = "?";
     tdWarningCount.innerText = "?";
     tdLineCounter.innerText = String(lineCounter);
-    throw Error("Logfile is too large to render.");
+    throw Error("Logfile is too large to render");
   }
 }
 
@@ -738,7 +739,7 @@ function copyElementToClipboard(HTMLElement) {
   }
   tempInput.select();
   document.execCommand("copy");
-  showMessageToast(`${tempInput.value}<br/><span class="info">Copied to clipboard!</span>`);
+  showMessageToast(`${tempInput.value}<br/><span class="info">Copied to clipboard</span>`);
   document.body.removeChild(tempInput);
 }
 
