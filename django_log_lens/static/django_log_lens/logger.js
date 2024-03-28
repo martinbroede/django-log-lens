@@ -19,11 +19,9 @@ function getStackTrace() {
 }
 
 const _customLogger = {
-
   csrfToken: getCSRFToken(),
   isEnabled: true,
-  dateFormatter: (date) => date.toISOString().slice(0, 19).replace("T", " "),
-  
+
   sendLogToServer: function (message, level) {
     if (!_customLogger.isEnabled) {
       return;
@@ -45,16 +43,19 @@ const _customLogger = {
       });
   },
 
+  /**
+   * Handles uncaught errors - sends the error to the server.
+   * @param {ErrorEvent} errorEvent
+   */
   errorHandler: (errorEvent) => {
-    const msg = errorEvent.error.stack || String(errorEvent.error);
-    _customLogger.sendLogToServer(msg, "CRITICAL");
+    _customLogger.log("CRITICAL", [errorEvent.error]);
   },
 
   mapArgsToMessage: (args) => {
     return Array.from(args)
       .map((arg) => {
         if (arg instanceof Error) {
-          return ("\n" + arg.stack).trim()
+          return arg.stack ? arg.message + "\n" + arg.stack : arg.message;
         } else if (typeof arg === "object") {
           return JSON.stringify(arg, null, 2);
         } else {
@@ -66,8 +67,11 @@ const _customLogger = {
 
   log: (logLevel, args, stack) => {
     let logMessage = _customLogger.mapArgsToMessage(args);
-    logMessage += stack ? `\n${stack}` : "";
-    logMessage = logMessage.replaceAll(">", "&gt;").replaceAll("<", "&lt;").trim();
+    if (stack && !args[0].stack) {
+      // if the first argument is an error, we don't want to append the stack trace
+      logMessage += "\n" + stack;
+    }
+    logMessage = logMessage.replaceAll(">", "&gt;").replaceAll("<", "&lt;").replaceAll("=", "&equals;").trim();
     _customLogger.sendLogToServer(logMessage, logLevel);
   },
 
@@ -83,7 +87,7 @@ window.customLogger = _customLogger;
 
 if (!_customLogger.csrfToken) {
   _customLogger.isEnabled = false;
-  console.log("Disabling customLogger because csrf token is missing.");
+  console.log("Disabling customLogger because CSRF token is missing.");
 }
 
 console.debug = function () {
