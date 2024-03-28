@@ -50,11 +50,11 @@ const _customLogger = {
     _customLogger.sendLogToServer(msg, "CRITICAL");
   },
 
-  log: (logLevel, args, stack) => {
-    const message = Array.from(args)
+  mapArgsToMessage: (args) => {
+    return Array.from(args)
       .map((arg) => {
         if (arg instanceof Error) {
-          return "\n" + arg.stack;
+          return ("\n" + arg.stack).trim()
         } else if (typeof arg === "object") {
           return JSON.stringify(arg, null, 2);
         } else {
@@ -62,9 +62,12 @@ const _customLogger = {
         }
       })
       .join(" ");
-    let logMessage = message;
+  },
+
+  log: (logLevel, args, stack) => {
+    let logMessage = _customLogger.mapArgsToMessage(args);
     logMessage += stack ? `\n${stack}` : "";
-    logMessage = logMessage.replaceAll(">", "&gt;").replaceAll("<", "&lt;");
+    logMessage = logMessage.replaceAll(">", "&gt;").replaceAll("<", "&lt;").trim();
     _customLogger.sendLogToServer(logMessage, logLevel);
   },
 
