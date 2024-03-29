@@ -5,13 +5,23 @@
     <title>Django Log Lens</title>
     <link rel="icon" type="image/png" href="{% static 'django_log_lens/favicon.svg' %}" />
     <link rel="stylesheet" href="{% static 'django_log_lens/styles.css' %}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
+      rel="stylesheet"
+    />
   </head>
 
   <body>
     {% csrf_token %}
     <div id="div-toolbar" class="fixed">
       <div class="toolbar-block">
-        <button id="btn-show-on-github" class="info" onclick="window.open('https://github.com/martinbroede/django-log-lens', '_blank')">
+        <button
+          id="btn-show-on-github"
+          class="info"
+          onclick="window.open('https://github.com/martinbroede/django-log-lens', '_blank')"
+        >
           <img src="{% static 'django_log_lens/logo.svg' %}" alt="GitHub" />
         </button>
 

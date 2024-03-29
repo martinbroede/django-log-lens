@@ -8,9 +8,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" type="text/css" media="screen" href='{% static "django_log_lens/styles.css" %}' />
     <link rel="icon" type="image/png" href="{% static 'django_log_lens/favicon.svg' %}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body>
-    <div id="div-overlay">
+
+  <body style="background-color: var(--toolbar-color);">
       <div id="div-login" style="display: block; top: 10%">
         <br />
         <form method="post">
@@ -27,16 +33,9 @@
           <br />
           <br />
           <br />
-          <button
-            type="submit"
-            class="info"
-            style="width: 50%; border-radius: 999px; border: 0; font-size: 1, 5rem; font-weight: bold; padding: 3%"
-          >
-            Login
-          </button>
+          <button type="submit">Login</button>
         </form>
         <br />
-      </div>
     </div>
   </body>
 </html>

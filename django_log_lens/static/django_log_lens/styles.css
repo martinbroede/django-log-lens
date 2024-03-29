@@ -18,14 +18,14 @@
   --small-padding: calc(var(--padding) / 2);
   --control-elem-color: var(--foreground-color);
   --control-elem-bg-color: #182838;
-  --font: "Courier New", Courier, monospace;
+  --font: "Source Code Pro", monospace;
 }
 
 /** log level colors */
 
 .critical {
   color: var(--red-color);
-  font-weight: bold;
+  font-weight: 900;
 }
 
 .error {
@@ -87,28 +87,31 @@
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font);
+  -ms-overflow-style: none; /* Edge */
   background-color: var(--background-color);
   color: var(--foreground-color);
-  -ms-overflow-style: none; /* Edge */
+  margin: 0;
+  padding: 0;
   scrollbar-width: none; /* Firefox */
+}
+
+body * {
+  font-family: var(--font);
 }
 
 pre {
   margin: 0;
   padding: 0;
   font-size: 1rem;
+  font-weight: 600;
 }
 
 label {
-  color: var(--control-elem-color);
   border-bottom: 1px solid var(--control-elem-color);
+  color: var(--control-elem-color);
+  font-weight: 500;
+  margin: var(--padding);
   padding: var(--small-padding);
-  margin-bottom: var(--padding);
-  margin-left: var(--padding);
-  margin-top: var(--padding);
 }
 
 body::-webkit-scrollbar {
@@ -147,9 +150,11 @@ input {
   border: 1px solid var(--neutral-color);
   color: var(--control-elem-color);
   cursor: pointer;
-  font-family: var(--font);
   font-size: large;
-  margin: var(--padding);
+  font-weight: 500;
+  margin: var(--small-padding);
+  margin-left: var(--padding);
+  /* padding: var(--small-padding); */
 }
 
 button[state="on"]::before {
@@ -165,6 +170,7 @@ button[state="off"]::before {
 button:hover,
 input:hover {
   background-color: #00ffff12;
+  color: var(--cyan-color);
 }
 
 button:active,
@@ -175,7 +181,7 @@ a:active,
 }
 
 span:active {
-  color: var(--foreground-color);
+  background-color: #fff1;
 }
 
 input {
@@ -232,8 +238,8 @@ tr:last-child td {
 }
 
 #pre-line-counter {
-  min-width: 54px;
-  margin-left: 4px;
+  min-width: 56px;
+  padding-left: var(--small-padding);
   border-right: 1px solid #ccc;
   background-color: var(--lighter-background-color);
 }
@@ -261,7 +267,7 @@ tr:last-child td {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: #00000080;
   z-index: 2;
 }
 
@@ -275,12 +281,12 @@ tr:last-child td {
 #div-message-toast,
 #div-prompt,
 #div-login {
-  align-items: center; /* vertically center */
+  align-items: center;
   color: var(--control-elem-color);
   display: flex;
   font-size: larger;
-  font-weight: bold;
-  justify-content: center; /* horizontally center */
+  font-weight: 600;
+  justify-content: center;
   left: 25%;
   min-height: 10%;
   min-width: 40%;
@@ -307,6 +313,7 @@ tr:last-child td {
 #btn-show-on-github {
   border: none;
   margin-top: -6px;
+  margin-left: var(--small-padding);
   margin-bottom: 20px;
   font-weight: bold;
   background-color: var(--toolbar-color);
