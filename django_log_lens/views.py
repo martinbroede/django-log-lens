@@ -80,8 +80,12 @@ def request_logfile(request) -> HttpResponse:
         with open(filename, 'r') as f:
             ti_m = os.path.getmtime(filename)
             return JsonResponse({"text": f.read(), "timestamp": f"{ti_m}"})
-    except (FileNotFoundError, KeyError):
-        return HttpResponse("No logs available")
+    except FileNotFoundError:
+        return JsonResponse({"text": f"Log file {filename} not found", "timestamp": "0"})
+    except KeyError:
+        return JsonResponse(
+            {"text": "Improperly configured.\nPlease check the LOGGING configuration"
+             " in your settings.py", "timestamp": "0"})
 
 
 @require_http_methods(["GET"])
@@ -99,7 +103,7 @@ def request_logfile_timestamp(request) -> HttpResponse:
         ti_m = os.path.getmtime(filename)
         return JsonResponse({"timestamp": f"{ti_m}"})
     except (FileNotFoundError, KeyError):
-        return JsonResponse({})
+        return JsonResponse({"timestamp": "0"})
 
 
 @require_http_methods(["DELETE"])
@@ -116,7 +120,7 @@ def clear_logfile(request) -> HttpResponse:
     try:
         with open(filename, 'w') as f:
             f.write("")
-            return HttpResponse(f"Log file {filename} cleared")
+        return HttpResponse(f"Log file {filename} cleared")
     except FileNotFoundError:
         return HttpResponse("No logs available")
 
