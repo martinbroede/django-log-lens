@@ -1,7 +1,11 @@
 "use strict";
 
+/**
+ * Looks for an input element with the name "csrfmiddlewaretoken" and returns its value.
+ * @returns {string} CSRF token
+ */
 function getCSRFToken() {
-  // https://gist.github.com/sirodoht/fb7a6e98d33fc460d4f1eadaff486e7b - thanks!
+  // source https://gist.github.com/sirodoht/fb7a6e98d33fc460d4f1eadaff486e7b - thanks!
   const inputElements = document.querySelectorAll("input");
   let csrfToken = "";
   for (let i = 0; i < inputElements.length; ++i) {
@@ -13,33 +17,48 @@ function getCSRFToken() {
   return csrfToken;
 }
 
+/**
+ * Returns the stack trace of the invocating function.
+ * @returns {string} Stack trace
+ */
 function getStackTrace() {
-  const stack = new Error().stack.split("\n");
+  const stack = (new Error().stack || "").split("\n");
   return stack.slice(3, stack.length).join("\n");
 }
 
-const _customLogger = {
+/**
+ * Copies the console methods so they can be overridden in a way that the original methods are still accessible
+ * and the logs can be sent to the server.
+ */
+const logLensLogger = {
   csrfToken: getCSRFToken(),
   isEnabled: true,
 
+  /**
+   * Sends the log message to the server with the given severity level.
+   * @param {string} message Log message
+   * @param {string} level Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+   * @returns {void}
+   */
   sendLogToServer: function (message, level) {
-    if (!_customLogger.isEnabled) {
+    if (!logLensLogger.isEnabled) {
       return;
     }
-    fetch(window.customLoggerAPI, {
+    // @ts-ignore
+    fetch(customLoggerAPI, {
       method: "POST",
-      headers: { "X-CSRFToken": _customLogger.csrfToken, "Content-Type": "application/json" },
+      headers: { "X-CSRFToken": logLensLogger.csrfToken, "Content-Type": "application/json" },
       body: JSON.stringify({ error_message: message, severity: level }),
     })
       .then((response) => {
         if (response.status >= 400) {
-          console.error("Logging Error (in .then block):", response.statusText);
-          _customLogger.isEnabled = false;
+          console.error(`Error sending log to server (${getStackTrace()})`, response);
+          logLensLogger.isEnabled = false;
         }
       })
       .catch((error) => {
-        console.error("Logging Error (in .catch block):", error);
-        _customLogger.isEnabled = false;
+        console.error(`Error sending log to server (${getStackTrace()})`, error);
+        logLensLogger.isEnabled = false;
       });
   },
 
@@ -48,9 +67,14 @@ const _customLogger = {
    * @param {ErrorEvent} errorEvent
    */
   errorHandler: (errorEvent) => {
-    _customLogger.log("CRITICAL", [errorEvent.error]);
+    logLensLogger.log("CRITICAL", [errorEvent.error]);
   },
 
+  /**
+   * Maps the arguments to a single string message.
+   * @param {IArguments | any[]} args Arguments
+   * @returns {string} Mapped message
+   */
   mapArgsToMessage: (args) => {
     return Array.from(args)
       .map((arg) => {
@@ -65,14 +89,20 @@ const _customLogger = {
       .join(" ");
   },
 
+  /**
+   * Logs the message to the server.
+   * @param {string} logLevel Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+   * @param {IArguments | any[]} args Arguments
+   * @param {string=} stack Stack trace
+   */
   log: (logLevel, args, stack) => {
-    let logMessage = _customLogger.mapArgsToMessage(args);
+    let logMessage = logLensLogger.mapArgsToMessage(args);
     if (stack && !args[0].stack) {
       // if the first argument is an error, we don't want to append the stack trace
       logMessage += "\n" + stack;
     }
     logMessage = logMessage.replaceAll(">", "&gt;").replaceAll("<", "&lt;").replaceAll("=", "&equals;").trim();
-    _customLogger.sendLogToServer(logMessage, logLevel);
+    logLensLogger.sendLogToServer(logMessage, logLevel);
   },
 
   logDebug: console.debug,
@@ -83,43 +113,41 @@ const _customLogger = {
   logAssertion: console.assert,
 };
 
-window.customLogger = _customLogger;
-
-if (!_customLogger.csrfToken) {
-  _customLogger.isEnabled = false;
+if (!logLensLogger.csrfToken) {
+  logLensLogger.isEnabled = false;
   console.log("Disabling customLogger because CSRF token is missing.");
 }
 
 console.debug = function () {
-  _customLogger.logDebug(...arguments);
-  _customLogger.log("DEBUG", arguments, getStackTrace());
+  logLensLogger.logDebug(...arguments);
+  logLensLogger.log("DEBUG", arguments, getStackTrace());
 };
 
 console.log = function () {
-  _customLogger.logLog(...arguments);
-  _customLogger.log("DEBUG", arguments, getStackTrace());
+  logLensLogger.logLog(...arguments);
+  logLensLogger.log("DEBUG", arguments, getStackTrace());
 };
 
 console.info = function () {
-  _customLogger.logInfo(...arguments);
-  _customLogger.log("INFO", arguments, getStackTrace());
+  logLensLogger.logInfo(...arguments);
+  logLensLogger.log("INFO", arguments, getStackTrace());
 };
 
 console.warn = function () {
-  _customLogger.logWarning(...arguments);
-  _customLogger.log("WARNING", arguments, getStackTrace());
+  logLensLogger.logWarning(...arguments);
+  logLensLogger.log("WARNING", arguments, getStackTrace());
 };
 
 console.error = function () {
-  _customLogger.logError(...arguments);
-  _customLogger.log("ERROR", arguments, getStackTrace());
+  logLensLogger.logError(...arguments);
+  logLensLogger.log("ERROR", arguments, getStackTrace());
 };
 
 console.assert = function () {
-  _customLogger.logAssertion(...arguments);
+  logLensLogger.logAssertion(...arguments);
   if (!arguments[0]) {
-    _customLogger.log("ASSERTION FAILED (CRITICAL)", arguments, getStackTrace());
+    logLensLogger.log("ASSERTION FAILED (CRITICAL)", arguments, getStackTrace());
   }
 };
 
-window.addEventListener("error", _customLogger.errorHandler);
+window.addEventListener("error", logLensLogger.errorHandler);
