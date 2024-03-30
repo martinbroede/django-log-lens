@@ -45,7 +45,7 @@ const logLensLogger = {
       return;
     }
     // @ts-ignore
-    fetch(customLoggerAPI, {
+    fetch(LOG_LENS_POST_API, {
       method: "POST",
       headers: { "X-CSRFToken": logLensLogger.csrfToken, "Content-Type": "application/json" },
       body: JSON.stringify({ error_message: message, severity: level }),
