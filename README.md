@@ -1,3 +1,4 @@
+[![Downloads](https://static.pepy.tech/badge/django-log-lens)](https://pepy.tech/project/django-log-lens)
 [![PyPI](https://img.shields.io/badge/PyPI-django--log--lens-blue)](https://pypi.org/project/django-log-lens/)
 [![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmartinbroede%2Fdjango-log-lens%2Fmain%2FVERSION.json&query=version&label=Latest%20Version)](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/VERSION.json)
 [![linting](https://github.com/martinbroede/django-log-lens/actions/workflows/linting.yaml/badge.svg)](https://github.com/martinbroede/django-log-lens/actions/workflows/linting.yaml)
