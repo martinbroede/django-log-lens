@@ -10,8 +10,52 @@
 
 <br>
 
-Django Log Lens is a Django app that provides a simple, lightweight and easy-to-use logging system for your Django project.
+Django Log Lens is a dependency free, lightweight and easy-to-use logging app for Django.
+It provides an interface to view, download and supervise logs. 
+Furthermore, it allows clients to send console logs to the server -
+out of the box, working with any frontend framework just by adding a single line of code to
+include the required script.
+Want to try it out? [&rarr;Get started!](#getting-started)
 
+# Core Features
+
+### Overview of Accessible Handlers and the Corresponding Log Files
+
+![Log Lens Handler Overview](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/docs/demo.handlers.png)
+
+---
+
+### Syntax-highlighted Logs in Your Browser
+
+![Log File Demo](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/docs/demo.logs.png)
+
+---
+
+### Fast Navigation through Log Files
+
+![Log File Navigation Demo](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/docs/demo.navigation.png)
+
+---
+
+### Fast Navigation through Source Code
+
+- Click on a path in the log message to copy it to the clipboard
+- Click on the <kbd>&uarr;</kbd> button to open the referenced line in VS Code
+- Adjust the <kbd>Path Splitter</kbd> and the <kbd>Path Prefix</kbd> to match your project structure
+
+![Navigate through Source Code](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/docs/demo.handlers.png)
+
+Example:
+
+Say, the remote project root is `/web/my-project` (as in the example above) and your local project root is `/home/user/MY-PROJECT`.
+
+- Set the <kbd>Path Prefix</kbd> to `/home/user/MY-PROJECT`
+- Set the <kbd>Path Splitter</kbd> to `/my-project`
+
+**&rarr; Now, by clicking on the path**<br />
+`/web/my-project/django/dvenv/lib/python3.10/site-packages/django/http/request.py:151`, <br />
+`/home/user/MY-PROJECT/django/dvenv/lib/python3.10/site-packages/django/http/request.py:151` <br />
+**will be opened by VS Code instead.**
 
 ## Getting Started
 
