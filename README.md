@@ -4,7 +4,7 @@ It provides an interface to view, download and supervise logs.
 Furthermore, it allows clients to send console logs to the server -
 out of the box, working with any frontend framework just by adding a single line of code to
 include the required script.
-Want to try it out? [&rarr;Get started!](#getting-started)
+Want to try it out? [&rarr;Get started!](https://github.com/martinbroede/django-log-lens#getting-started)
 
 # Core Features
 
