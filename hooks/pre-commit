@@ -1,0 +1,21 @@
+#!/bin/bash
+
+
+# pretty print code before commit
+
+isort .
+autopep8 --in-place --recursive .
+
+# Check for unstaged changes or untracked files
+if ! git diff --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+  echo "Please stage or stash all unstaged/untracked changes before committing."
+  exit 1
+fi
+
+# Only commit linted files:
+flake8 .
+
+if [ $? -ne 0 ]; then
+  echo "Linting failed. Please fix the issues before committing."
+  exit 1
+fi
