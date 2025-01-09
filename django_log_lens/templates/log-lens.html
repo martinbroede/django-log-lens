@@ -14,7 +14,6 @@
   </head>
 
   <body>
-    {% csrf_token %}
     <div id="div-toolbar" class="fixed">
       <div class="toolbar-block">
         <button
@@ -50,8 +49,8 @@
             placeholder="Line Number"
             onkeyup="goToLineWidId(this.value)"
           />
-          <button onclick="window.scrollTo(0, 0)">Top</button>
-          <button onclick="window.scrollTo(0, document.body.scrollHeight)">Bottom</button>
+          <button onclick="scrollToTop()">Top</button>
+          <button onclick="scrollToBottom()">Bottom</button>
         </div>
         <div class="toolbar-block">
           <button onclick="goToPreviousError()">Prev. Error</button>

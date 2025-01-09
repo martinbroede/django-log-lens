@@ -9,12 +9,14 @@ from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-HANDLER_NAME_NOT_PROVIDED_TEXT = "400 Bad Request: no handler name provided"
+BAD_REQUEST_HANDLER_NAME_NOT_PROVIDED = HttpResponseBadRequest("400 Bad Request: no handler name provided")
 
-try:
-    ALLOW_JS_LOGGING = settings.ALLOW_JS_LOGGING
-except AttributeError:
-    ALLOW_JS_LOGGING = False
+file_handling_logger_classes = {
+    "logging.FileHandler",
+    "logging.handlers.RotatingFileHandler",
+    "logging.handlers.TimedRotatingFileHandler"
+    "logging.handlers.WatchedFileHandler",
+}
 
 client_logger = logging.getLogger("django_log_lens.client")
 
@@ -54,10 +56,16 @@ def login_view(request):
 
 @require_http_methods(["POST"])
 def log_js_error(request):
-    """Logs the error message and stack trace provided by the POST request."""
-    if not ALLOW_JS_LOGGING:
+    """
+    Logs the error message and stack trace provided by the POST request.
+    Only for development purposes, don't use in production.
+    """
+    try:
+        allow_js_logging = settings.DEBUG
+    except AttributeError:
+        allow_js_logging = False
+    if not allow_js_logging:
         return HttpResponseBadRequest("JavaScript / Client logging is not allowed")
-
     log = json.loads(request.body.decode('utf-8'))
     log_message = log['error_message']
     log_level = log['severity']
@@ -69,12 +77,13 @@ def log_js_error(request):
 @user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def request_logfile(request) -> HttpResponse:
     """
-    Returns the contents of the log file specified by the handler_name GET parameter.
+    Returns the contents of the log file associated with the handler_name
+    defined in the query string.
     A logged in superuser is required.
     """
     handler_name = request.GET.get('handler_name', None)
     if handler_name is None:
-        return HttpResponseBadRequest(HANDLER_NAME_NOT_PROVIDED_TEXT)
+        return BAD_REQUEST_HANDLER_NAME_NOT_PROVIDED
     try:
         filename = settings.LOGGING['handlers'][handler_name]['filename']
         with open(filename, 'r') as f:
@@ -92,12 +101,13 @@ def request_logfile(request) -> HttpResponse:
 @user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def request_logfile_timestamp(request) -> HttpResponse:
     """
-    Returns the contents of the log file specified by the handler_name GET parameter.
+    Returns the timestamp of the logfile associated with the handler_name
+    defined in the query string.
     A logged in superuser is required.
     """
     handler_name = request.GET.get('handler_name', None)
     if handler_name is None:
-        return HttpResponseBadRequest(HANDLER_NAME_NOT_PROVIDED_TEXT)
+        return BAD_REQUEST_HANDLER_NAME_NOT_PROVIDED
     try:
         filename = settings.LOGGING['handlers'][handler_name]['filename']
         ti_m = os.path.getmtime(filename)
@@ -115,7 +125,7 @@ def clear_logfile(request) -> HttpResponse:
     """
     handler_name = request.GET.get('handler_name', None)
     if handler_name is None:
-        return HttpResponseBadRequest(HANDLER_NAME_NOT_PROVIDED_TEXT)
+        return BAD_REQUEST_HANDLER_NAME_NOT_PROVIDED
     filename = settings.LOGGING['handlers'][handler_name]['filename']
     try:
         with open(filename, 'w') as f:
@@ -129,13 +139,16 @@ def clear_logfile(request) -> HttpResponse:
 @user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def request_logfile_paths(request) -> JsonResponse | HttpResponseBadRequest:
     """
-    Returns a JSON object containing the paths of all log files.
+    Returns a JSON object containing the paths of all log files
+    associated with any file handlers defined in the LOGGING configuration.
     A logged in superuser is required.
     """
     try:
         paths = {}
         for handler_name in settings.LOGGING['handlers']:
-            if 'filename' in settings.LOGGING['handlers'][handler_name]:
+            has_filename = 'filename' in settings.LOGGING['handlers'][handler_name]
+            is_file_handler = settings.LOGGING['handlers'][handler_name]['class'] in file_handling_logger_classes
+            if has_filename and is_file_handler:
                 paths[handler_name] = settings.LOGGING['handlers'][handler_name]['filename']
         return JsonResponse(paths)
     except KeyError:

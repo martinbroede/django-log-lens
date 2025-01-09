@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python Debugger: Django",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/log_lens_demo/manage.py",
+      "args": ["runserver"],
+      "django": true,
+      "autoStartBrowser": false
+    }
+  ]
+}

@@ -97,7 +97,7 @@ const logLensLogger = {
    */
   log: (logLevel, args, stack) => {
     let logMessage = logLensLogger.mapArgsToMessage(args);
-    const stackAsProperty = args[0]? args[0].stack : undefined;
+    const stackAsProperty = args[0] ? args[0].stack : undefined;
     if (stack && !stackAsProperty) {
       // if the first argument is an error, we don't want to append the stack trace
       logMessage += "\n" + stack;

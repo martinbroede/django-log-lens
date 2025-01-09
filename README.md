@@ -1,19 +1,14 @@
-[![Downloads](https://static.pepy.tech/badge/django-log-lens)](https://pepy.tech/project/django-log-lens)
-[![PyPI](https://img.shields.io/badge/PyPI-django--log--lens-blue)](https://pypi.org/project/django-log-lens/)
-[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmartinbroede%2Fdjango-log-lens%2Fmain%2FVERSION.json&query=version&label=Latest%20Version)](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/VERSION.json)
-[![linting](https://github.com/martinbroede/django-log-lens/actions/workflows/linting.yaml/badge.svg)](https://github.com/martinbroede/django-log-lens/actions/workflows/linting.yaml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Downloads](https://static.pepy.tech/badge/django-log-lens)](https://pepy.tech/project/django-log-lens) [![PyPI](https://img.shields.io/badge/PyPI-django--log--lens-blue)](https://pypi.org/project/django-log-lens/) [![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmartinbroede%2Fdjango-log-lens%2Fmain%2FVERSION.json&query=version&label=Latest%20Version)](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/VERSION.json) [![linting](https://github.com/martinbroede/django-log-lens/actions/workflows/linting.yaml/badge.svg)](https://github.com/martinbroede/django-log-lens/actions/workflows/linting.yaml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+<!-- TODO: Add tested python versions here: -->
+<!-- [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://url.to.tests) -->
 
-<br> 
-<br>
-
+<br/>
 <img width="830px" src="https://raw.githubusercontent.com/martinbroede/django-log-lens/main/django_log_lens/static/django_log_lens/logo.svg">
-
-<br>
-<br>
+<br/>
+<br/>
 
 Django Log Lens is a dependency free, lightweight and easy-to-use logging app for Django.
-It provides an interface to view, download and supervise logs. 
+It provides an interface to view, download and supervise logs.
 Furthermore, it allows clients to send console logs to the server -
 out of the box, working with any frontend framework just by adding a single line of code to
 include the required script.
@@ -27,7 +22,7 @@ Want to try it out? [&rarr;Get started!](https://github.com/martinbroede/django-
 
 ---
 
-### Syntax-highlighted Logs in Your Browser
+### Semantically Highlighted Logs in Your Browser
 
 ![Log File Demo](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/docs/demo.logs.png)
 
@@ -68,7 +63,7 @@ Allows clients to send console logs to the server.
 <html>
   ...
   <body>
-    {% csrf_token %} 
+    {% csrf_token %}
     <!-- it's not necessary to render the CSRF token more than once,
     so if you use it anywhere in your template, you can skip the line above -->
     {% include 'js-logger.html' %}
@@ -76,7 +71,7 @@ Allows clients to send console logs to the server.
     It will simply override the console methods (debug, info, warn...) in a
     way they behave the same as before but also send the logs to the server.
     Thus, the script does not interfere with your frontend framework and
-    can be used out-of-the-box. --> 
+    can be used out-of-the-box. -->
     ...
   </body>
   <script>
@@ -155,7 +150,7 @@ LOGGING = {
     }
 }
 
-ALLOW_JS_LOGGING = True  # django_log_lens setting: allows clients to send console logs to the server
+ALLOW_JS_LOGGING = DEBUG # it's recommendable not to allow client logging in production
 ```
 
 ### 5. Visit Log Lens
@@ -163,6 +158,21 @@ ALLOW_JS_LOGGING = True  # django_log_lens setting: allows clients to send conso
 You can now visit Django Log Lens by navigating to `{% url 'django_log_lens:view' %}` (code for your template) -
  if you configured the URL pattern as shown above, this would be `logs/view`
 
+
+## FAQ
+
+- > Why is are my logs not colored according to the log level?
+
+  Make sure to set the `LOG_FORMAT` in your `settings.py` as shown in the example above.
+- > Can I use my own logging format?
+
+  Basically, yes. Just make sure prefix the loglevel to the log message as shown in the following example:
+  ```python
+  from django_log_lens import LEVEL_PREFIX
+
+  MY_LOG_FORMAT = "%(levelname)s - %(message)s" # adjust to your needs
+  MY_LOG_LENS_FORMAT = LEVEL_PREFIX + MY_LOG_FORMAT
+  ```
 
 ## Third Party Licenses
 

@@ -1,4 +1,6 @@
 "use strict";
+const MAX_LINE_COUNT = 99999;
+
 const btnAutoRefresh = document.getElementById("btn-auto-refresh");
 const divLogContent = document.getElementById("div-log-content");
 const divMessageToast = document.getElementById("div-message-toast");
@@ -429,7 +431,7 @@ function promptClearLogFile(handlerName) {
     } else callbackCanceled();
   };
   const promptText =
-    `Are you sure you want to clear the logs of ${handlerName}?\n` + `If so, type ${handlerName} in the field below.`;
+    `Are you sure you want to clear the logs of ${handlerName}?\n` + `If so, type '${handlerName}' in the field below.`;
   prompt(promptText, callbackConfirmed, callbackCanceled);
 }
 
@@ -469,6 +471,7 @@ function clearLogFile(handlerName) {
  */
 function adjustLogContentMargin() {
   divLogContent.style.marginTop = getOffset() + "px";
+  divLogContent.style.height = `calc(100vh - ${getOffset()}px)`;
 }
 
 /**
@@ -553,7 +556,31 @@ function finalize(logText, handlerName) {
   tdWarningCount.innerText = String(state.warningCounter);
   h3LogfileName.innerText = state.filePaths[handlerName];
   addLineNumbers(logLines.length);
-  window.scrollTo(0, document.body.scrollHeight);
+  divLogContent.scrollTo(0, divLogContent.scrollHeight);
+}
+
+/**
+ * Scrolls to the top of the log content.
+ * @returns {void}
+ */
+function scrollToTop() {
+  divLogContent.scrollTo(0, 0);
+}
+
+/**
+ * Scrolls to the bottom of the log content.
+ * @returns {void}
+ */
+function scrollToBottom() {
+  divLogContent.scrollTo(0, divLogContent.scrollHeight);
+}
+
+/**
+ * Scrolls the given the divLogContent to the given element.
+ * @param {HTMLElement} elem
+ */
+function scrollIntoView(elem) {
+  divLogContent.scrollTo(0, elem.offsetTop - divLogContent.offsetTop);
 }
 
 /**
@@ -565,7 +592,7 @@ function addLineNumbers(noOfLines) {
   const lineCounterLines = [];
   for (let i = 0; i < noOfLines; i++) {
     lineCounterLines[i] = `<span id='line-${i + 1}' class='line-counter'>`.concat(
-      (i + 1).toString().padStart(5, "0"),
+      (i + 1).toString().padStart(5, " "),
       "</span><br />"
     );
   }
@@ -580,7 +607,7 @@ function addLineNumbers(noOfLines) {
  */
 function checkLogFileLength(logText) {
   const lineCounter = logText.split("\n").length;
-  if (lineCounter > 99999) {
+  if (lineCounter > MAX_LINE_COUNT) {
     preLineCounter.innerHTML = "";
     preLogContent.innerHTML = "";
     tdErrorCountElem.innerText = "?";
@@ -749,12 +776,10 @@ function copyElementToClipboard(HTMLElement) {
  * @returns {void}
  */
 function goToLineWidId(id) {
-  const scrollOffset = getOffset();
   try {
     const _id = parseInt(id);
     const line = document.getElementById("line-" + _id);
-    line.scrollIntoView();
-    window.scroll(0, window.scrollY - scrollOffset);
+    scrollIntoView(line);
   } catch {}
 }
 
@@ -764,17 +789,8 @@ function goToLineWidId(id) {
  * @returns {void}
  */
 function goToError(errorNo) {
-  const scrollOffset = getOffset();
   const errorElement = document.getElementById(`error-${errorNo}`);
-  const errYPos = errorElement.getBoundingClientRect().top;
-
-  if (errYPos + window.scrollY - document.body.scrollHeight > 0) {
-    window.scroll(0, document.body.scrollHeight);
-  } else {
-    errorElement.scrollIntoView();
-    window.scroll(0, window.scrollY - scrollOffset);
-  }
-
+  scrollIntoView(errorElement);
   errorElement.style.backgroundColor = "var(--highlight-color)";
   setTimeout(() => {
     errorElement.style.backgroundColor = "";
