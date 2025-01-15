@@ -16,14 +16,6 @@
   <body>
     <div id="div-toolbar" class="fixed">
       <div class="toolbar-block">
-        <button
-          id="btn-show-on-github"
-          class="info"
-          onclick="window.open('https://github.com/martinbroede/django-log-lens', '_blank')"
-        >
-          <img src="{% static 'django_log_lens/logo.svg' %}" alt="GitHub" />
-        </button>
-
         <form style="display: inline-block" method="post" action="{% url 'log-lens:logout' %}">
           {% csrf_token %}
           <button type="submit">
@@ -33,7 +25,7 @@
         </form>
         <button onclick="fetchLogfile()">Refresh</button>
         <div class="toolbar-block">
-          <label>Configuration</label>
+          <label>Configuration:</label>
           <button id="btn-toggle-visibility" onclick="toggleToolbarExtensionVisibility(this)">Show Less</button>
           <input type="text" autocomplete="off" id="input-path-splitter" placeholder="Path Splitter" />
           <input type="text" autocomplete="off" id="input-path-prefix" placeholder="Path Prefix" />
@@ -41,7 +33,7 @@
       </div>
       <div class="toolbar-block">
         <div class="toolbar-block">
-          <label>Navigation</label>
+          <label>Navigation:</label>
           <input
             type="text"
             autocomplete="off"

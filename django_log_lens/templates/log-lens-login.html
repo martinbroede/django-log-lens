@@ -16,26 +16,25 @@
     />
   </head>
 
-  <body style="background-color: var(--toolbar-color);">
-      <div id="div-login" style="display: block; top: 10%">
+  <body style="background-color: var(--toolbar-color)">
+    <div id="div-login" style="background-color: var(--background-color); top: 10%; padding: 20px; border-radius: 50px">
+      <br />
+      <form method="post">
+        {% csrf_token %}
+        <img width="325px" src="{% static 'django_log_lens/logo.svg' %}" alt="Django Log Lens" />
         <br />
-        <form method="post">
-          {% csrf_token %}
-          <img style="width: 50%" src="{% static 'django_log_lens/logo.svg' %}" alt="Django Log Lens" />
-          <br />
-          <br />
-          <p class="error">{{ error_message }}</p>
-          <label for="username">Username:</label>
-          <input type="text" name="username" id="username" required />
-          <br />
-          <label for="password">Password:</label>
-          <input type="password" name="password" id="password" required />
-          <br />
-          <br />
-          <br />
-          <button type="submit">Login</button>
-        </form>
         <br />
+        <p class="error">{{ error_message }}</p>
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required />
+        <br />
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required />
+        <br />
+        <br />
+        <button type="submit" style="width: 10rem;">Login</button>
+      </form>
+      <br />
     </div>
   </body>
 </html>

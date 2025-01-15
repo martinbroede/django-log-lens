@@ -297,6 +297,13 @@ tr:last-child td {
     top: 50%;
 }
 
+#div-login {
+    left: 0;
+    right: 0;
+    width: 360px;
+    margin: auto;
+}
+
 #div-prompt input {
     width: 75%;
 }
