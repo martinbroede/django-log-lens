@@ -1,0 +1,7 @@
+Django
+
+autopep8
+flake8
+isort
+
+setuptools
