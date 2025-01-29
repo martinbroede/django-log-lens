@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>TEST PAGE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <h1>Django Log Lens Demo Page</h1>
+    {% csrf_token %} {% include 'js-logger.html' %}
+    <button onclick="throwError()">Do something</button>
+    <p>
+      Pushing the button above will throw an error. In case <code>ALLOW_JS_LOGGING</code> is set to <code>True</code>,
+      the error will be logged to the console and sent to the server, where it will be logged by the
+      <code>client</code> handler.
+    </p>
+  </body>
+  <script>
+    var errorNum = 0;
+    function throwError() {
+      throw new Error("Hello from error number " + errorNum++ + "!");
+    }
+
+    console.debug("Hello from console.debug!");
+    console.info("Hello from console.info!");
+    console.log("Hello from console.log!");
+    console.warn("Hello from console.warn!");
+    console.error("Hello from console.error!");
+    console.assert(false, "Hello from console.assert!");
+
+    function testLog() {
+      console.warn("Hello from console.log!");
+    }
+    function nestedLog() {
+      testLog();
+    }
+    nestedLog();
+    throw 42;
+  </script>
+</html>

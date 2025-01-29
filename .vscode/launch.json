@@ -5,8 +5,8 @@
       "name": "Python Debugger: Django",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/log_lens_demo/manage.py",
-      "args": ["runserver"],
+      "program": "${workspaceFolder}/demo/manage.py",
+      "args": ["runserver", "localhost:8765"],
       "django": true,
       "autoStartBrowser": false
     }
