@@ -31,8 +31,8 @@ setuptools.setup(
     url="https://github.com/martinbroede/django-log-lens",
     packages=['django_log_lens'],
     include_package_data=True,
-    python_requires='>=3.9',
-    install_requires=["Django>=4.2"],
+    python_requires='>=3.10',
+    install_requires=["Django>=4.1"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
