@@ -48,7 +48,7 @@ const logLensLogger = {
     fetch(LOG_LENS_POST_API, {
       method: "POST",
       headers: { "X-CSRFToken": logLensLogger.csrfToken, "Content-Type": "application/json" },
-      body: JSON.stringify({ error_message: message, severity: level }),
+      body: JSON.stringify({ log_message: message, severity: level }),
     })
       .then((response) => {
         if (response.status >= 400) {

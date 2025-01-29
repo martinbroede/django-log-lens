@@ -5,7 +5,8 @@ import os
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import (HttpResponse, HttpResponseBadRequest,
+                         HttpResponseForbidden, JsonResponse)
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
@@ -61,13 +62,13 @@ def log_js_error(request):
     Only for development purposes, don't use in production.
     """
     try:
-        allow_js_logging = settings.DEBUG
+        allow_js_logging = settings.ALLOW_JS_LOGGING
     except AttributeError:
         allow_js_logging = False
     if not allow_js_logging:
-        return HttpResponseBadRequest("JavaScript / Client logging is not allowed")
+        return HttpResponseForbidden("Client logger is disabled.")
     log = json.loads(request.body.decode('utf-8'))
-    log_message = log['error_message']
+    log_message = log['log_message']
     log_level = log['severity']
     log_level_functional_map.get(log_level, client_logger.error)(log_message)
     return HttpResponse("Log message processed.")

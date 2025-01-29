@@ -4,8 +4,8 @@ from pathlib import Path
 
 import setuptools
 
-if sys.version_info < (3, 9):
-    print("Python 3.9 or higher is required.")
+if sys.version_info < (3, 10):
+    print("Python 3.10 or higher is required.")
     sys.exit(1)
 
 PARENT_FOLDER = Path(__file__).parent
@@ -31,14 +31,14 @@ setuptools.setup(
     url="https://github.com/martinbroede/django-log-lens",
     packages=['django_log_lens'],
     include_package_data=True,
-    python_requires='>=3.9',
-    install_requires=["Django>=4.2"],
+    python_requires='>=3.10',
+    install_requires=["Django>=4.1"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Framework :: Django",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],

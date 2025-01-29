@@ -1,18 +1,22 @@
 #!/bin/bash
 
+warn() {
+  echo -e "\033[0;33m$1\033[0m"
+}
+
 # pretty print code before committing
 isort .
 autopep8 --in-place --recursive .
 
 # Check for unstaged changes or untracked files
 if ! git diff --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
-  echo "Please stage or stash all unstaged/untracked changes before committing."
+  warn "Please stage or stash all unstaged/untracked changes before committing."
   exit 1
 fi
 
 flake8 .
 
 if [ $? -ne 0 ]; then
-  echo "Linter failed. Please fix the issues before committing."
+  warn "Linter failed. Please fix the issues before committing."
   exit 1
 fi
