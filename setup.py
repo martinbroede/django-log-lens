@@ -4,8 +4,8 @@ from pathlib import Path
 
 import setuptools
 
-if sys.version_info < (3, 9):
-    print("Python 3.9 or higher is required.")
+if sys.version_info < (3, 10):
+    print("Python 3.10 or higher is required.")
     sys.exit(1)
 
 PARENT_FOLDER = Path(__file__).parent
@@ -38,7 +38,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Framework :: Django",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
