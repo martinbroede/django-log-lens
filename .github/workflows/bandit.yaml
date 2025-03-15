@@ -1,4 +1,4 @@
-name: Linter
+name: Bandit
 
 on: [push]
 
@@ -14,10 +14,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 isort
-      - name: Analysing the code with flake
+          pip install bandit
+      - name: Check for security issues
         run: |
-          flake8 django_log_lens setup.py
-      - name: Analysing the code with isort
-        run: |
-          isort --check-only --diff django_log_lens setup.py
+          bandit -r ./django_log_lens

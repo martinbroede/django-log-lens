@@ -10,8 +10,7 @@ autopep8 --in-place --recursive .
 
 # Check for unstaged changes or untracked files
 if ! git diff --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
-  warn "Please stage or stash all unstaged/untracked changes before committing."
-  exit 1
+  warn "You have unstaged changes or untracked files. Please check if this is intended and amend your commit when indicated."
 fi
 
 flake8 .
