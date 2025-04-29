@@ -4,13 +4,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Published](https://img.shields.io/badge/Published%20on-Django%20Packages-0c3c26)](https://djangopackages.org/packages/p/django-log-lens/)
 
-[![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
+[![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml)
 [![Bandit](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml)
 [![Tests](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 [![Linter](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml)
 
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
-[![Django](https://img.shields.io/badge/django-4.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
+[![Django](https://img.shields.io/badge/django-4.1%20%7C%204.2%20(LTS)%20%7C%205.0%20%7C%205.1%20%7C%205.2%20(LTS)-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 
 <br/>
 <img width="830px" src="https://raw.githubusercontent.com/martinbroede/django-log-lens/main/django_log_lens/static/django_log_lens/logo.svg">
@@ -182,6 +182,33 @@ You can now visit Django Log Lens by navigating to `{% url 'django_log_lens:view
   MY_LOG_FORMAT = "%(levelname)s - %(message)s" # adjust to your needs
   MY_LOG_LENS_FORMAT = LEVEL_PREFIX + MY_LOG_FORMAT
   ```
+- > Which handlers are recognized by Django Log Lens?
+
+  The following handlers will be recognized automatically:
+  `FileHandler`, `RotatingFileHandler`, `TimedRotatingFileHandler`, `WatchedFileHandler`
+
+  As a side note, be aware that the
+  `WatchedFileHandler` is inappropriate for use under windows as open files cannot be moved or renamed.
+
+- > What if I want to use a custom handler?
+
+  Assume you have a custom handler called `CustomHandler` in the file `myapp/handlers.py`:
+
+  ```python
+  from logging.handlers import TimedRotatingFileHandler
+  class CustomFileHandler(TimedRotatingFileHandler): # could also inherit from any other handler
+      pass # add your custom logic here
+  ```
+
+  Add the following lines to the logging configuration in your `settings.py`:
+
+  ```python
+  from django_log_lens import add_handler
+  # add your custom handler by its fully qualified class name:
+  add_handler("myapp.handlers.CustomFileHandler")
+  ```
+  Now, the custom handler will be recognized by Django Log Lens and
+  you can view the logs in the web interface.
 
 ## Third Party Licenses
 

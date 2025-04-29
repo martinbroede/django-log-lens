@@ -12,10 +12,10 @@ from django.views.decorators.http import require_http_methods
 
 BAD_REQUEST_HANDLER_NAME_NOT_PROVIDED = HttpResponseBadRequest("400 Bad Request: no handler name provided")
 
-file_handling_logger_classes = {
+file_handlers = {
     "logging.FileHandler",
     "logging.handlers.RotatingFileHandler",
-    "logging.handlers.TimedRotatingFileHandler"
+    "logging.handlers.TimedRotatingFileHandler",
     "logging.handlers.WatchedFileHandler",
 }
 
@@ -148,7 +148,7 @@ def request_logfile_paths(request) -> JsonResponse | HttpResponseBadRequest:
         paths = {}
         for handler_name in settings.LOGGING['handlers']:
             has_filename = 'filename' in settings.LOGGING['handlers'][handler_name]
-            is_file_handler = settings.LOGGING['handlers'][handler_name]['class'] in file_handling_logger_classes
+            is_file_handler = settings.LOGGING['handlers'][handler_name]['class'] in file_handlers
             if has_filename and is_file_handler:
                 paths[handler_name] = settings.LOGGING['handlers'][handler_name]['filename']
         return JsonResponse(paths)
