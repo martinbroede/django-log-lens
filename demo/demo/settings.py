@@ -3,11 +3,11 @@ import sys
 from pathlib import Path
 
 try:
-    from django_log_lens import LEVEL_PREFIX, LOG_FORMAT
+    from django_log_lens import LEVEL_PREFIX, LOG_FORMAT, add_handler
 except ImportError:
     # add local django_log_lens from this repository to the path
     sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-    from django_log_lens import LEVEL_PREFIX, LOG_FORMAT
+    from django_log_lens import LEVEL_PREFIX, LOG_FORMAT, add_handler
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -118,10 +118,26 @@ LOGGING = {
             "filename": str(LOG_FOLDER / "requests.log"),
             "formatter": "none",
         },
+        "misc": {
+            "level": "WARNING",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": str(LOG_FOLDER / "misc.log"),
+            "formatter": "none",
+        },
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
     },
     "loggers": {
         "django_log_lens.client": {"handlers": ["client"], "level": "DEBUG", "propagate": True},
         "django.request": {"handlers": ["requests"], "level": "INFO", "propagate": True},
         "django": {"handlers": ["django"], "level": "WARNING", "propagate": True},
+        "misc": {"handlers": ["misc"], "level": "DEBUG", "propagate": True},
+        # logger to assert that only file handlers are recognized by django log lens:
+        "test": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
     }
 }
+
+add_handler("demo.handler.CustomFileHandler")

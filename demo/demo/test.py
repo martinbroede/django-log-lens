@@ -1,3 +1,4 @@
+import logging
 import os
 
 from django.conf import settings
@@ -9,11 +10,6 @@ from django.urls import reverse
 class TestLogLens(TestCase):
 
     def setUp(self):
-        log_dir = settings.LOG_FOLDER
-        for file in os.listdir(log_dir):
-            with open(os.path.join(log_dir, file), 'w') as f:
-                f.write("")
-
         self.superuser = User.objects.create_superuser('admin', "", 'admin')
         self.regular_user = User.objects.create_user('user', "", 'user')
 
@@ -59,9 +55,11 @@ class TestLogLens(TestCase):
         for val in dict_response.values():
             self.assertTrue(os.path.exists(val), "All log files should exist.")
 
-        handler_names = ['client', 'django', 'requests']
-        for key in dict_response.keys():
-            self.assertTrue(key in handler_names, "All handler names should be valid.")
+        handler_names = ['client', 'django', 'requests', 'misc']
+        recognized_handlers = dict_response.keys()
+        for handler in handler_names:
+            self.assertTrue(handler in recognized_handlers, f"Handler {handler} should be recognized.")
+        assert len(handler_names) == len(recognized_handlers), "All handlers should be recognized."
 
     def test_logfile_timestamp_request(self):
         url = reverse('log-lens:request-logfile-timestamp')
@@ -104,3 +102,29 @@ class TestLogLens(TestCase):
         """
         with open(settings.LOGGING['handlers'][handler_name]['filename'], 'r') as f:
             return f.read()
+
+    def test_log_levels(self):
+        logger = logging.getLogger("django.request")
+        logger.debug("DEBUG")
+        logger.info("INFO")
+        logger.warning("WARNING")
+        logger.error("ERROR")
+        logger.critical("CRITICAL")
+
+        log_file_content = self.read_log_file("requests")
+
+        for msg in ["WARNING", "ERROR", "CRITICAL"]:
+            self.assertTrue(msg in log_file_content, f"Log message {msg} should be found in file.")
+        # log level is WARNING::
+        for msg in ["DEBUG", "INFO"]:
+            self.assertFalse(msg in log_file_content, f"Log message {msg} should not be found in file.")
+
+    @classmethod
+    def tearDownClass(cls):
+        """
+        Cleans up the log files after each test.
+        """
+        log_dir = settings.LOG_FOLDER
+        for file in os.listdir(log_dir):
+            with open(os.path.join(log_dir, file), 'w') as f:
+                f.write("")

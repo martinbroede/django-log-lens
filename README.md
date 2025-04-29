@@ -182,6 +182,33 @@ You can now visit Django Log Lens by navigating to `{% url 'django_log_lens:view
   MY_LOG_FORMAT = "%(levelname)s - %(message)s" # adjust to your needs
   MY_LOG_LENS_FORMAT = LEVEL_PREFIX + MY_LOG_FORMAT
   ```
+- > Which handlers are recognized by Django Log Lens?
+
+  The following handlers will be recognized automatically:
+  `FileHandler`, `RotatingFileHandler`, `TimedRotatingFileHandler`, `WatchedFileHandler`
+
+  As a side note, be aware that the
+  `WatchedFileHandler` is inappropriate for use under windows as open files cannot be moved or renamed.
+
+- > What if I want to use a custom handler?
+
+  Assume you have a custom handler called `CustomHandler` in the file `myapp/handlers.py`:
+
+  ```python
+  from logging.handlers import TimedRotatingFileHandler
+  class CustomFileHandler(TimedRotatingFileHandler): # could also inherit from any other handler
+      pass # add your custom logic here
+  ```
+
+  Add the following lines to the logging configuration in your `settings.py`:
+
+  ```python
+  from django_log_lens import add_handler
+  # add your custom handler by its fully qualified class name:
+  add_handler("myapp.handlers.CustomFileHandler")
+  ```
+  Now, the custom handler will be recognized by Django Log Lens and
+  you can view the logs in the web interface.
 
 ## Third Party Licenses
 
