@@ -1,5 +1,6 @@
 {% extends "v2/base.html" %}
 {% load static %}
+{% load log_lens_components %}
 
 {% block header %}
   <nav class="container">
@@ -30,70 +31,26 @@
              @click="ui.activeTab = 'nav'"
              :class="{ 'secondary': ui.activeTab !== 'nav'}">Navigation</div>
       </li>
-      <li>
-        <div role="link"
-             @click="ui.activeTab = 'numbers'"
-             :class="{ 'secondary': ui.activeTab !== 'numbers'}">Numbers</div>
-      </li>
     </ul>
 
     <ul>
       <li>
-        <form method="post" action="{% url 'log-lens:logout' %}">
-          {% csrf_token %}
-          <span role="link" class="secondary" @click="$el.closest('form').submit()">Logout
-            <b>{{ user.username }}</b>
-          </span>
-        </form>
       </li>
-
+        {% logout_link user %}
       <li>
-        <a class="secondary" onclick="toggleTheme()">
-          <svg id="moon-icon"
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               viewBox="0 0 24 24"
-               fill="none"
-               stroke="currentColor"
-               stroke-width="3"
-               stroke-linecap="round"
-               stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-          <svg id="sun-icon"
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               viewBox="0 0 24 24"
-               fill="none"
-               stroke="currentColor"
-               stroke-width="3"
-               stroke-linecap="round"
-               stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
-        </a>
+        {% theme_toggler %}
       </li>
     </ul>
   </nav>
 {% endblock header %}
 
 {% block main %}
-  <div class="container">
+  <div class="container overflow-auto">
     <article x-show="ui.activeTab === 'files'">
       <header class="spaced">
         <b>Selected File:</b>
         <code x-text="ui.selectedLogFile"></code>
-        <button @click="ui.activeTab = 'null'">✕</button>
+        <button class="hide-sm hide-md" @click="ui.activeTab = 'null'">✕</button>
       </header>
 
       <table id="table-file-paths">
@@ -101,20 +58,17 @@
           <tr>
             <th>Handler</th>
             <th>File</th>
-            <th>&nbsp;</th>
           </tr>
         </thead>
         <tbody>
           {% for handler, path in log_files.items %}
             <tr>
               <td :class="{ 'pico-primary-color':  ui.selectedLogFile === '{{ path }}' }">{{ handler }}</td>
-              <td>
+              <td class="spaced">
                 <a role="link"
                    @click="ui.selectedLogFile='{{ path }}'; closeFileView();">
                   <code class="transparent-background">{{ path }}</code>
                 </a>
-              </td>
-              <td>
                 <details class="dropdown">
                   <summary>Actions</summary>
                   <ul>
@@ -137,6 +91,12 @@
         </tbody>
       </table>
       <progress x-show="ui.state.isLoading"></progress>
+      <footer>
+        <div class="spaced">
+          &nbsp;
+          <button class="hide-lg" @click="ui.activeTab = 'null'">✕ Close</button>
+        </div>
+      </footer>
     </article>
 
     <article x-show="ui.activeTab === 'config'">
@@ -191,14 +151,18 @@
         </span>
         <button @click="ui.activeTab = 'null'">✕</button>
       </header>
-      <div role="group">
+      <div class="grid">
+        <!-- <div role="group"> -->
         <button class="outline secondary" @click="scrollToTop()">↑ Top</button>
         <button class="outline secondary" @click="scrollToBottom()">↓ Bottom</button>
-        &nbsp;
+        <!-- </div> -->
+        <!-- <div role="group"> -->
         <button class="outline">← Prev Error</button>
         <button class="outline">→ Next Error</button>
         <button class="outline">>> Latest Error</button>
+        <!-- </div> -->
       </div>
+      <br />
       <div class="grid">
         <input type="search"
                name="Line Number"
@@ -206,19 +170,6 @@
                @input="gotoLine($event.target.value)" />
         <input type="search" name="search" placeholder="Search" aria-label="Search" />
       </div>
-    </article>
-
-    <article x-show="ui.activeTab === 'numbers'">
-      <header class="spaced">
-        <b>Selected File:</b>
-        <span>
-          <code x-text="ui.selectedLogFile"></code>
-          <a role="link" @click="ui.activeTab = 'files'">Change</a>
-        </span>
-        <button @click="ui.activeTab = 'null'">✕</button>
-      </header>
-
-      <p>Numbers</p>
     </article>
   </div>
 

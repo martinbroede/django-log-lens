@@ -69,6 +69,7 @@ td details summary {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .hide {
@@ -153,4 +154,29 @@ td details summary {
 
 #pre-log-content {
     color: var(--pico-color);
+}
+
+/* Responsive visibility utilities */
+@media (max-width: 575px) {
+    .hide-sm {
+        display: none !important;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 767px) {
+    .hide-md {
+        display: none !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .hide-md {
+        display: none !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .hide-lg {
+        display: none !important;
+    }
 }

@@ -54,9 +54,8 @@ const logger = {
     if (!condition) {
       this.error(...args);
     }
-  }
+  },
 };
-
 
 /**
  * Go to a specific line number in the log file display.
@@ -149,6 +148,12 @@ function setUpAlpine() {
     initScrollBehaviour();
 
     Alpine.effect(() => {
+      const foo = Alpine.store("ui").selectedLogFile;
+      logger.debug("Selected log file changed:", foo);
+      setTimeout(() => addOptionalLineBreaks(), 100);
+    });
+
+    Alpine.effect(() => {
       const fileName = Alpine.store("ui").selectedLogFile;
       if (fileName && fileName !== NONE_SELECTED) {
         fetch(`/logs/api/files/${encodeURIComponent(fileName)}/`)
@@ -163,6 +168,16 @@ function setUpAlpine() {
       }
     });
     logger.info("Alpine.js initialized.");
+  });
+}
+
+/**
+ * Get all <code> elements and add a <wbr /> tag after each "/" to allow optional line breaks.
+ */
+function addOptionalLineBreaks() {
+  document.querySelectorAll("code").forEach((codeElement) => {
+    const regex = /\/(?!<wbr>)/g;
+    codeElement.innerHTML = codeElement.innerHTML.replaceAll(regex, "/<wbr>");
   });
 }
 
