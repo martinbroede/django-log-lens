@@ -151,11 +151,18 @@
       <small>&nbsp;&nbsp;Foo bar todo explanation</small>
       <br />
       <br />
-      <label>
-        &nbsp;
-        <input name="opt-in" type="checkbox" role="switch" checked />
-        Auto Refresh
-      </label>
+      <div role="group">
+        <label>
+          &nbsp;
+          <input name="opt-in" type="checkbox" role="switch" checked />
+          Auto Refresh
+        </label>
+        <label>
+          &nbsp;
+          <input name="opt-in" type="checkbox" role="switch" checked />
+          Auto Refresh
+        </label>
+      </div>
     </article>
 
     <article id="article-navigation" x-show="ui.activeTab === 'nav'">
@@ -207,6 +214,6 @@
       <pre id="pre-log-content" x-html="ui.logFile.content"></pre>
     </div>
   </div>
-  <script src="{% static 'django_log_lens/script.v2.js' %}"></script>
+  <script src="{% static 'django_log_lens/main.js' %}"></script>
   <script src="{% static 'django_log_lens/formatter.js' %}"></script>
 {% endblock main %}
