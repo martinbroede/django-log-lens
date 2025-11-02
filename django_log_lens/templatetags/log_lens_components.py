@@ -11,10 +11,13 @@ def register_component_tags(templates: list[str]):
     for template_path in templates:
         component_name = template_path.split("/")[-1].replace(".html", "")
 
-        def func(*args, **kwargs): return {}
-        func.__name__ = component_name
-        print(f"Registering component tag: {component_name} -> {template_path}")
-        register.inclusion_tag(template_path)(func)
+        def make_func_with_context(template_path):
+            def func(context, *args, **kwargs):
+                return context
+            func.__name__ = component_name
+            return func
+
+        register.inclusion_tag(template_path, takes_context=True)(make_func_with_context(template_path))
 
 
 def get_template_files(dir_name: str) -> list[str]:
@@ -33,6 +36,14 @@ def get_template_files(dir_name: str) -> list[str]:
             template_files.append(f"{dir_name}/{filename}")
 
     return template_files
+
+
+def get_registered_components() -> list[str]:
+    """
+    Returns the globally registered component tags for testing purposes.
+    """
+    # todo test the behaviour
+    return list(register.tags.keys())
 
 
 component_templates = get_template_files("log_lens_components")

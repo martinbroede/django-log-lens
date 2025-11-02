@@ -127,6 +127,16 @@ td details summary {
 
 /** Log View */
 
+/* hide all scrollbars */
+
+&::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+* {
+    scrollbar-width: none; /* Firefox */
+}
+
 #div-pre-wrapper {
     grid-template-columns: 4rem auto;
     display: grid;

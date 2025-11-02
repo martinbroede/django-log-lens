@@ -34,24 +34,23 @@
     </ul>
 
     <ul>
-      <li>
-      </li>
-        {% logout_link user %}
-      <li>
-        {% theme_toggler %}
-      </li>
+      <li></li>
+      {% logout_link %}
+      <li>{% theme_toggler %}</li>
     </ul>
   </nav>
 {% endblock header %}
 
 {% block main %}
-  <div class="container overflow-auto">
+  <div class="container">
     <article x-show="ui.activeTab === 'files'">
       <header class="spaced">
         <b>Selected File:</b>
         <code x-text="ui.selectedLogFile"></code>
         <button class="hide-sm hide-md" @click="ui.activeTab = 'null'">✕</button>
       </header>
+
+      <progress x-show="ui.state.isLoading"></progress>
 
       <table id="table-file-paths">
         <thead>
@@ -90,31 +89,20 @@
           {% endfor %}
         </tbody>
       </table>
-      <progress x-show="ui.state.isLoading"></progress>
-      <footer>
-        <div class="spaced">
-          &nbsp;
-          <button class="hide-lg" @click="ui.activeTab = 'null'">✕ Close</button>
-        </div>
-      </footer>
+
+      {% tab_footer %}
+
     </article>
 
     <article x-show="ui.activeTab === 'config'">
-      <header class="spaced">
-        <b>Selected File:</b>
-        <span>
-          <code x-text="ui.selectedLogFile"></code>
-          <a role="link" @click="ui.activeTab = 'files'">Change</a>
-        </span>
-        <button @click="ui.activeTab = 'null'">✕</button>
-      </header>
 
-      <div role="group">
+      {% tab_header %}
+
+      <div class="grid">
         <input type="text"
                name="path-splitter"
                placeholder="Path Splitter"
                aria-label="Path Splitter" />
-        &nbsp;
         <input type="text"
                name="path-prefix"
                placeholder="Path Prefix"
@@ -140,27 +128,21 @@
           <span data-tooltip="Expands the log file to use the full width of the screen">&nbsp;?&nbsp;</span>
         </label>
       </div>
+
+      {% tab_footer %}
+
     </article>
 
     <article id="article-navigation" x-show="ui.activeTab === 'nav'">
-      <header class="spaced">
-        <b>Selected File:</b>
-        <span>
-          <code x-text="ui.selectedLogFile"></code>
-          <a role="link" @click="ui.activeTab = 'files'">Change</a>
-        </span>
-        <button @click="ui.activeTab = 'null'">✕</button>
-      </header>
+
+      {% tab_header %}
+
       <div class="grid">
-        <!-- <div role="group"> -->
         <button class="outline secondary" @click="scrollToTop()">↑ Top</button>
         <button class="outline secondary" @click="scrollToBottom()">↓ Bottom</button>
-        <!-- </div> -->
-        <!-- <div role="group"> -->
         <button class="outline">← Prev Error</button>
         <button class="outline">→ Next Error</button>
         <button class="outline">>> Latest Error</button>
-        <!-- </div> -->
       </div>
       <br />
       <div class="grid">
@@ -170,6 +152,9 @@
                @input="gotoLine($event.target.value)" />
         <input type="search" name="search" placeholder="Search" aria-label="Search" />
       </div>
+
+      {% tab_footer %}
+
     </article>
   </div>
 
