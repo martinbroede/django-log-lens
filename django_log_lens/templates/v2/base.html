@@ -54,9 +54,10 @@
        * If no preference is stored, use the system preference.
        */
       function setThemeFromPreference() {
-          const storedTheme = localStorage.getItem("theme");
-          const prefersDarkScheme = storedTheme ? storedTheme === "dark" : window.matchMedia("(prefers-color-scheme: dark)");
-          const theme = prefersDarkScheme ? "dark" : "light";
+          const storedTheme = localStorage.getItem("theme") || "";
+          const systemSetting = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          const theme = storedTheme || systemSetting;
+          console.log(storedTheme, systemSetting, theme);
           document.documentElement.setAttribute("data-theme", theme);
       }
 

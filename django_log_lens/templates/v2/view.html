@@ -10,6 +10,7 @@
              height="auto"
              src="{% static 'django_log_lens/favicon.svg' %}"
              alt="Django Log Lens" />
+        &nbsp;Django Log Lens
       </li>
     </ul>
 
@@ -17,22 +18,22 @@
       <li>
         <div role="link"
              @click="ui.activeTab = 'files'"
-             :class="{ 'contrast': ui.activeTab === 'files' }">Files</div>
+             :class="{ 'secondary': ui.activeTab !== 'files' }">Files</div>
       </li>
       <li>
         <div role="link"
              @click="ui.activeTab = 'config'"
-             :class="{ 'contrast': ui.activeTab === 'config'}">Config</div>
+             :class="{ 'secondary': ui.activeTab !== 'config'}">Config</div>
       </li>
       <li>
         <div role="link"
              @click="ui.activeTab = 'nav'"
-             :class="{ 'contrast': ui.activeTab === 'nav'}">Navigation</div>
+             :class="{ 'secondary': ui.activeTab !== 'nav'}">Navigation</div>
       </li>
       <li>
         <div role="link"
              @click="ui.activeTab = 'numbers'"
-             :class="{ 'contrast': ui.activeTab === 'numbers'}">Numbers</div>
+             :class="{ 'secondary': ui.activeTab !== 'numbers'}">Numbers</div>
       </li>
     </ul>
 
@@ -40,45 +41,47 @@
       <li>
         <form method="post" action="{% url 'log-lens:logout' %}">
           {% csrf_token %}
-          <span role="link" @click="$el.closest('form').submit()">Logout
+          <span role="link" class="secondary" @click="$el.closest('form').submit()">Logout
             <b>{{ user.username }}</b>
           </span>
         </form>
       </li>
 
-      <li class="pico-primary-color" onclick="toggleTheme()">
-        <svg id="moon-icon"
-             xmlns="http://www.w3.org/2000/svg"
-             width="24"
-             height="24"
-             viewBox="0 0 24 24"
-             fill="none"
-             stroke="currentColor"
-             stroke-width="3"
-             stroke-linecap="round"
-             stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
-        <svg id="sun-icon"
-             xmlns="http://www.w3.org/2000/svg"
-             width="24"
-             height="24"
-             viewBox="0 0 24 24"
-             fill="none"
-             stroke="currentColor"
-             stroke-width="3"
-             stroke-linecap="round"
-             stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
+      <li>
+        <a class="secondary" onclick="toggleTheme()">
+          <svg id="moon-icon"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="3"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <svg id="sun-icon"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="3"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </a>
       </li>
     </ul>
   </nav>
@@ -148,8 +151,8 @@
                placeholder="Path Prefix"
                aria-label="Path Prefix" />
       </div>
-      <small>&nbsp;&nbsp;Foo bar todo explanation</small>
       <br />
+      <hr />
       <br />
       <div class="grid">
         <label>
@@ -161,9 +164,13 @@
 
         <label>
           &nbsp;
-          <input name="opt-in" type="checkbox" role="switch" value="true" x-model="ui.state.fullWidth" />
+          <input name="opt-in"
+                 type="checkbox"
+                 role="switch"
+                 value="true"
+                 x-model="ui.state.fullWidth" />
           Full Width
-          <span data-tooltip="Expands the log view to use the full width of the screen">&nbsp;?&nbsp;</span>
+          <span data-tooltip="Expands the log file to use the full width of the screen">&nbsp;?&nbsp;</span>
         </label>
       </div>
     </article>
@@ -210,7 +217,7 @@
   </div>
 
   <div id="log-container"
-       class="container"
+       :class="{ 'container-fluid': ui.state.fullWidth, 'container': !ui.state.fullWidth }"
        x-show="(ui.activeTab === 'nav' || ui.activeTab === 'null') && ui.selectedLogFile !== 'NONE SELECTED'">
     <div id="div-pre-wrapper">
       <pre id="pre-line-counter" x-html="ui.logFile.lines"></pre>
@@ -219,4 +226,5 @@
   </div>
   <script src="{% static 'django_log_lens/main.js' %}"></script>
   <script src="{% static 'django_log_lens/formatter.js' %}"></script>
+
 {% endblock main %}

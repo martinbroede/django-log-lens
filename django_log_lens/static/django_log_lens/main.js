@@ -53,29 +53,13 @@ function scrollToBottom() {
 }
 
 /**
- * Synchronize the activeTab in Alpine.js store with localStorage on initialization.
+ * Synchronize a property in Alpine.js store with localStorage.
+ * @param {string} key The localStorage key to sync with.
+ * @param {*} getProperty A function that returns the property to sync.
  */
-function syncActiveTabWithLocalStorage() {
+function syncWithLocalStorage(key, getProperty) {
   Alpine.effect(() => {
-    localStorage.setItem("activeTab", Alpine.store("ui").activeTab);
-  });
-}
-
-/**
- * Synchronize the selectedLogFile in Alpine.js store with localStorage on initialization.
- */
-function syncSelectedLogFileWithLocalStorage() {
-  Alpine.effect(() => {
-    localStorage.setItem("selectedLogFile", Alpine.store("ui").selectedLogFile);
-  });
-}
-
-/**
- * Synchronize the fullWidth state in Alpine.js store with localStorage on initialization.
- */
-function syncFullWidthWithLocalStorage() {
-  Alpine.effect(() => {
-    localStorage.setItem("fullWidth", Alpine.store("ui").state.fullWidth);
+    localStorage.setItem(key, getProperty());
   });
 }
 
@@ -110,9 +94,9 @@ function scrollToNavAfterPress() {
 function setUpAlpine() {
   document.addEventListener("alpine:init", () => {
     initAlpineStore();
-    syncActiveTabWithLocalStorage();
-    syncSelectedLogFileWithLocalStorage();
-    syncFullWidthWithLocalStorage();
+    syncWithLocalStorage("fullWidth", () => Alpine.store("ui").state.fullWidth);
+    syncWithLocalStorage("activeTab", () => Alpine.store("ui").activeTab);
+    syncWithLocalStorage("selectedLogFile", () => Alpine.store("ui").selectedLogFile);
     scrollToNavAfterPress();
 
     Alpine.effect(() => {
