@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+          content="Django Log Lens - A web-based log file viewer for Django applications" />
+    <meta name="keywords"
+          content="django, logging, log viewer, web-based, log file" />
+    <title>Django Log Lens</title>
+    <link rel="icon"
+          type="image/png"
+          href="{% static 'django_log_lens/favicon.svg' %}" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <script defer
+            src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="{% static 'django_log_lens/styles.v2.css' %}" />
+  </head>
+  <body x-data="$store">
+    <header id="header-base">
+      {% block header %}
+      {% endblock header %}
+    </header>
+
+    <main x-cloak>
+      {% block main %}
+      {% endblock main %}
+    </main>
+
+    <footer id="footer-base">
+      <div class="container">
+        <hr />
+        <br />
+        <p>© 2024 - 2025 Martin Broede · Django Log Lens</p>
+        <br />
+      </div>
+    </footer>
+  </body>
+  <script>
+      /**
+       * Toggle between light and dark themes.
+       */
+      function toggleTheme() {
+          const currentTheme = document.documentElement.getAttribute("data-theme");
+          const newTheme = currentTheme === "light" ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", newTheme);
+          localStorage.setItem("theme", newTheme);
+      }
+
+      /**
+       * Set the theme based on user preference stored in localStorage or system preference.
+       * If no preference is stored, use the system preference.
+       */
+      function setThemeFromPreference() {
+          const storedTheme = localStorage.getItem("theme");
+          const prefersDarkScheme = storedTheme ? storedTheme === "dark" : window.matchMedia("(prefers-color-scheme: dark)");
+          const theme = prefersDarkScheme ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", theme);
+      }
+
+      setThemeFromPreference();
+  </script>
+</html>

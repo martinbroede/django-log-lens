@@ -260,6 +260,7 @@ tr:last-child td {
 }
 
 #div-overlay {
+    display: none;
     position: fixed;
     width: 100%;
     height: 100%;
@@ -308,6 +309,10 @@ tr:last-child td {
     width: 75%;
 }
 
+#div-prompt {
+    display: block;
+}
+
 #btn-auto-refresh {
     margin-bottom: calc(2 * var(--padding));
 }
@@ -317,11 +322,32 @@ tr:last-child td {
     top: 20px;
     height: 48px;
 }
+
 #btn-show-on-github {
     border: none;
     margin-top: -6px;
     margin-left: var(--small-padding);
     margin-bottom: 20px;
     font-weight: bold;
+    background-color: var(--toolbar-color);
+}
+
+#span-username-logout {
+    color: var(--cyan-color);
+    text-transform: uppercase;
+}
+
+#btn-login-submit {
+    width: 10rem;
+}
+
+#div-login {
+    background-color: var(--background-color);
+    top: 10%;
+    padding: 20px;
+    border-radius: 50px;
+}
+
+#body-login {
     background-color: var(--toolbar-color);
 }

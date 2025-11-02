@@ -124,7 +124,7 @@ urlpatterns = [
 
 ### 4. Add a `LOGGING` configuration in your `settings.py`
 
-Follow the instructions from the [official Django documentation](https://docs.djangoproject.com/en/5.0/topics/logging/#configuring-logging) to configure the logging system or use the example below.
+Follow the instructions from the [official Django documentation](https://docs.djangoproject.com/en/5.2/topics/logging/#configuring-logging) to configure the logging system or use the example below.
 
 ```python
 # file: settings.py

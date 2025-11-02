@@ -1,6 +1,7 @@
 Django
 
 autopep8
+djlint
 flake8
 isort
 

@@ -1,0 +1,212 @@
+{% extends "v2/base.html" %}
+{% load static %}
+
+{% block header %}
+  <nav class="container">
+    <ul>
+      <li>
+        <img id="img-logo"
+             width="40px"
+             height="auto"
+             src="{% static 'django_log_lens/favicon.svg' %}"
+             alt="Django Log Lens" />
+      </li>
+    </ul>
+
+    <ul class="overflow-auto">
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'files'"
+             :class="{ 'contrast': ui.activeTab === 'files' }">Files</div>
+      </li>
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'config'"
+             :class="{ 'contrast': ui.activeTab === 'config'}">Config</div>
+      </li>
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'nav'"
+             :class="{ 'contrast': ui.activeTab === 'nav'}">Navigation</div>
+      </li>
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'numbers'"
+             :class="{ 'contrast': ui.activeTab === 'numbers'}">Numbers</div>
+      </li>
+    </ul>
+
+    <ul>
+      <li>
+        <form method="post" action="{% url 'log-lens:logout' %}">
+          {% csrf_token %}
+          <span role="link" @click="$el.closest('form').submit()">Logout
+            <b>{{ user.username }}</b>
+          </span>
+        </form>
+      </li>
+
+      <li class="pico-primary-color" onclick="toggleTheme()">
+        <svg id="moon-icon"
+             xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="3"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg id="sun-icon"
+             xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="3"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      </li>
+    </ul>
+  </nav>
+{% endblock header %}
+
+{% block main %}
+  <div class="container">
+    <article x-show="ui.activeTab === 'files'">
+      <header class="spaced">
+        <b>Selected File:&nbsp;&nbsp;</b>
+        <span>
+          <code x-text="ui.selectedLogFile"></code>
+        </span>
+        <button @click="ui.activeTab = 'null'">✕</button>
+      </header>
+
+      <table id="table-file-paths">
+        <thead>
+          <tr>
+            <th>Handler</th>
+            <th>File</th>
+            <th class="right">Actions&nbsp;</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, path in log_files.items %}
+            <tr>
+              <td :class="{ 'pico-primary-color':  ui.selectedLogFile === '{{ path }}' }">{{ name }}</td>
+              <td>
+                <code class="transparent-background">{{ path }}</code>
+              </td>
+              <td class="right">
+                <button class="outline"
+                        @click="ui.selectedLogFile='{{ path }}'; closeFileView();">→&nbsp;Load</button>
+                <a role="button"
+                   class="outline contrast"
+                   href="/logs/api/files/{{ path }}"
+                   download="{{ path }}">⤓&nbsp;Download</a>
+                {% comment %} todo adjust '/logs' {% endcomment %}
+                <button class="outline secondary" @click="">✕&nbsp;Clear</button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <progress x-show="ui.state.isLoading"></progress>
+    </article>
+
+    <article x-show="ui.activeTab === 'config'">
+      <header class="spaced">
+        <b>Selected File:&nbsp;&nbsp;</b>
+        <span>
+          <code x-text="ui.selectedLogFile"></code>
+          <a role="link" @click="ui.activeTab = 'files'">Change</a>
+        </span>
+        <button @click="ui.activeTab = 'null'">✕</button>
+      </header>
+
+      <div role="group">
+        <input type="text"
+               name="path-splitter"
+               placeholder="Path Splitter"
+               aria-label="Path Splitter" />
+        &nbsp;
+        <input type="text"
+               name="path-prefix"
+               placeholder="Path Prefix"
+               aria-label="Path Prefix" />
+      </div>
+      <small>&nbsp;&nbsp;Foo bar todo explanation</small>
+      <br />
+      <br />
+      <label>
+        &nbsp;
+        <input name="opt-in" type="checkbox" role="switch" checked />
+        Auto Refresh
+      </label>
+    </article>
+
+    <article id="article-navigation" x-show="ui.activeTab === 'nav'">
+      <header class="spaced">
+        <b>Selected File:&nbsp;&nbsp;</b>
+        <span>
+          <code x-text="ui.selectedLogFile"></code>
+          <a role="link" @click="ui.activeTab = 'files'">Change</a>
+        </span>
+        <button @click="ui.activeTab = 'null'">✕</button>
+      </header>
+      <div role="group">
+        <button class="outline secondary" @click="scrollToTop()">↑ Top</button>
+        <button class="outline secondary" @click="scrollToBottom()">↓ Bottom</button>
+        &nbsp;
+        <button class="outline">←&nbsp;Prev Error</button>
+        <button class="outline">→&nbsp;Next Error</button>
+        <button class="outline">&gt;&gt;&nbsp;Latest Error</button>
+      </div>
+      <div class="grid">
+        <input type="search"
+               name="Line Number"
+               placeholder="Go to Line"
+               x-model="ui.searchLine"
+               @input="searchLine(ui.searchLine)" />
+        <input type="search" name="search" placeholder="Search" aria-label="Search" />
+      </div>
+    </article>
+
+    <article x-show="ui.activeTab === 'numbers'">
+      <header class="spaced">
+        <b>Selected File:&nbsp;&nbsp;</b>
+        <span>
+          <code x-text="ui.selectedLogFile"></code>
+          <a role="link" @click="ui.activeTab = 'files'">Change</a>
+        </span>
+        <button @click="ui.activeTab = 'null'">✕</button>
+      </header>
+
+      <p>Numbers</p>
+    </article>
+  </div>
+
+  <div id="log-container"
+       class="container"
+       x-show="(ui.activeTab === 'nav' || ui.activeTab === 'null') && ui.selectedLogFile !== 'NONE SELECTED'">
+    <div id="div-pre-wrapper">
+      <pre id="pre-line-counter" x-html="ui.logFile.lines"></pre>
+      <pre id="pre-log-content" x-html="ui.logFile.content"></pre>
+    </div>
+  </div>
+  <script src="{% static 'django_log_lens/script.v2.js' %}"></script>
+  <script src="{% static 'django_log_lens/formatter.js' %}"></script>
+{% endblock main %}

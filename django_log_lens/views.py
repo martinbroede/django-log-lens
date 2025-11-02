@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from urllib.parse import unquote
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
@@ -11,6 +12,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 BAD_REQUEST_HANDLER_NAME_NOT_PROVIDED = HttpResponseBadRequest("400 Bad Request: no handler name provided")
+MISCONFIGURATION = "MISCONFIGURATION"
 
 file_handlers = {
     "logging.FileHandler",
@@ -46,13 +48,13 @@ def login_view(request):
         user = authenticate(username=username, password=password)
         if user is not None and user.is_superuser:  # type: ignore
             login(request, user)
-            return redirect('log-lens:view')
+            return redirect('log-lens:view-v2')
         elif user is not None:
-            return render(request, 'log-lens-login.html', {'error_message': f'{username} is not a superuser'})
+            return render(request, 'v2/login.html', {'error_message': f'{username} is not a superuser'})
         else:
-            return render(request, 'log-lens-login.html', {'error_message': 'Invalid credentials'})
+            return render(request, 'v2/login.html', {'error_message': 'Invalid credentials'})
     else:
-        return render(request, 'log-lens-login.html')
+        return render(request, 'v2/login.html')
 
 
 @require_http_methods(["POST"])
@@ -98,11 +100,42 @@ def request_logfile(request) -> HttpResponse:
              " in your settings.py", "timestamp": "0"})
 
 
+@require_http_methods(["GET", "DELETE"])
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
+def logfile_api(request, path: str) -> HttpResponse:
+    """
+    GET: Returns the contents of the log with the given path if it is within the LOGGING folder.
+    DELETE: Clears the contents of the log with the given path if it is within the LOGGING folder.
+    A logged in superuser is required.
+    """
+    path = unquote(path)
+
+    if path not in get_log_file_paths().values():
+        return HttpResponseBadRequest(f"400 Bad Request: invalid log file path: {path}")
+
+    if request.method == "GET":
+        try:
+            with open(path, 'r') as f:
+                ti_m = os.path.getmtime(path)
+                return JsonResponse({"content": f.read(), "timestamp": ti_m})
+        except FileNotFoundError:
+            return JsonResponse({"content": f"Log file {path} not found", "timestamp": -1})
+    elif request.method == "DELETE":
+        try:
+            with open(path, 'w') as f:
+                f.write("")
+            return HttpResponse(f"Log file {path} cleared")
+        except FileNotFoundError:
+            return HttpResponse("No logs available")
+    else:
+        return HttpResponseBadRequest("400 Bad Request: invalid HTTP method")  # will not reach here due to decorator
+
+
 @require_http_methods(["GET"])
 @user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
-def request_logfile_timestamp(request) -> HttpResponse:
+def get_timestamp(request) -> HttpResponse:
     """
-    Returns the timestamp of the logfile associated with the handler_name
+    Returns the timestamp of the logfile associated with the handler_namei
     defined in the query string.
     A logged in superuser is required.
     """
@@ -119,7 +152,7 @@ def request_logfile_timestamp(request) -> HttpResponse:
 
 @require_http_methods(["DELETE"])
 @user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
-def clear_logfile(request) -> HttpResponse:
+def delete_file(request) -> HttpResponse:
     """
     Clears the contents of the log file specified by the handler_name GET parameter.
     A logged in superuser is required.
@@ -156,6 +189,23 @@ def request_logfile_paths(request) -> JsonResponse | HttpResponseBadRequest:
         return JsonResponse({})
 
 
+def get_log_file_paths() -> dict[str, str]:
+    """
+    Returns a dictionary containing the paths of all log files
+    associated with any file handlers defined in the LOGGING configuration.
+    """
+    try:
+        paths = {}
+        for handler_name in settings.LOGGING['handlers']:
+            has_filename = 'filename' in settings.LOGGING['handlers'][handler_name]
+            is_file_handler = settings.LOGGING['handlers'][handler_name]['class'] in file_handlers
+            if has_filename and is_file_handler:
+                paths[handler_name] = settings.LOGGING['handlers'][handler_name]['filename'].replace('\\', '/')
+        return paths
+    except KeyError:
+        return {MISCONFIGURATION: "No log file handlers found in LOGGING configuration."}
+
+
 @require_http_methods(["GET"])
 @user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def log_lens_view(request) -> HttpResponse:
@@ -164,3 +214,14 @@ def log_lens_view(request) -> HttpResponse:
     A logged in superuser is required.
     """
     return render(request, 'log-lens.html')
+
+
+@require_http_methods(["GET"])
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
+def log_lens_view_v2(request) -> HttpResponse:
+    """
+    Returns the log viewer page.
+    A logged in superuser is required.
+    """
+    context = {"log_files": get_log_file_paths()}
+    return render(request, 'v2/view.html', context)

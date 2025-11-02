@@ -1,14 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>TEST PAGE</title>
+    <meta name="description"
+          content="Django Log Lens - A web-based log file viewer for Django applications" />
+    <meta name="keywords"
+          content="django, logging, log viewer, web-based, log file" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TEST PAGE</title>
   </head>
   <body>
     <h1>Django Log Lens Demo Page</h1>
-    {% csrf_token %} {% include 'js-logger.html' %}
+    {% csrf_token %}
+    {% include 'js-logger.html' %}
     <button onclick="throwError()">Do something</button>
     <p>
       Pushing the button above will throw an error. In case <code>ALLOW_JS_LOGGING</code> is set to <code>True</code>,

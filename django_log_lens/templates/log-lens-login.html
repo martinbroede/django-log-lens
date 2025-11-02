@@ -1,27 +1,36 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    {% load static %}
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+          content="Django Log Lens - A web-based log file viewer for Django applications" />
+    <meta name="keywords"
+          content="django, logging, log viewer, web-based, log file" />
     <title>Login to Django Log Lens</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" type="text/css" media="screen" href='{% static "django_log_lens/styles.css" %}' />
-    <link rel="icon" type="image/png" href="{% static 'django_log_lens/favicon.svg' %}" />
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href='{% static "django_log_lens/styles.css" %}' />
+    <link rel="icon"
+          type="image/png"
+          href="{% static 'django_log_lens/favicon.svg' %}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
+          rel="stylesheet" />
   </head>
-
-  <body style="background-color: var(--toolbar-color)">
-    <div id="div-login" style="background-color: var(--background-color); top: 10%; padding: 20px; border-radius: 50px">
+  <body id="body-login">
+    <div id="div-login">
       <br />
       <form method="post">
         {% csrf_token %}
-        <img width="325px" src="{% static 'django_log_lens/logo.svg' %}" alt="Django Log Lens" />
+        <img id="img-logo"
+             width="325px"
+             height="auto"
+             src="{% static 'django_log_lens/logo.svg' %}"
+             alt="Django Log Lens" />
         <br />
         <br />
         <p class="error">{{ error_message }}</p>
@@ -32,7 +41,7 @@
         <input type="password" name="password" id="password" required />
         <br />
         <br />
-        <button type="submit" style="width: 10rem;">Login</button>
+        <button id="btn-login-submit" type="submit">Login</button>
       </form>
       <br />
     </div>

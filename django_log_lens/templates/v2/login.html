@@ -1,0 +1,115 @@
+{% extends "v2/base.html" %}
+{% load static %}
+
+{% block header %}
+  <nav class="container">
+    <ul>
+      <li>
+        <img id="img-logo"
+             width="40px"
+             height="auto"
+             src="{% static 'django_log_lens/favicon.svg' %}"
+             alt="Django Log Lens" />
+      </li>
+    </ul>
+
+    <ul>
+      Django Log Lens - The Minimalist Logging App for your Django Projects
+    </ul>
+
+    <ul>
+      {% if user.is_authenticated %}
+        <li>
+          <form method="post" action="{% url 'log-lens:logout' %}">
+            {% csrf_token %}
+            <span role="link" @click="$el.closest('form').submit()">Logout
+              <b>{{ user.username }}</b>
+            </span>
+          </form>
+        </li>
+      {% endif %}
+
+      <li class="pico-primary-color" onclick="toggleTheme()">
+        <svg id="moon-icon"
+             xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="3"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg id="sun-icon"
+             xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="3"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      </li>
+    </ul>
+  </nav>
+{% endblock header %}
+
+{% block main %}
+  <div class="container">
+    <br />
+    <br />
+    <br />
+    <br />
+    <div class="grid">
+      <div>&nbsp;</div>
+      <div>
+
+        <form method="post">
+          <article>
+            <header>
+              <h4>Django Log Lens</h4>
+            </header>
+            <label for="username">
+              Username:
+              <input type="text"
+                     name="username"
+                     id="username"
+                     required
+                     {% if error_message %}aria-invalid="true"{% endif %}
+                     aria-describedby="invalid-helper" />
+            </label>
+
+            <label for="password">
+              Password:
+              <input type="password"
+                     name="password"
+                     id="password"
+                     required
+                     {% if error_message %}aria-invalid="true"{% endif %} />
+              <small id="invalid-helper">{{ error_message }}</small>
+            </label>
+            <footer>
+              <button id="btn-login-submit" type="submit">Login</button>
+              {% csrf_token %}
+            </footer>
+          </article>
+        </form>
+
+      </div>
+      <div>&nbsp;</div>
+    </div>
+  </div>
+{% endblock main %}

@@ -1,0 +1,145 @@
+html {
+    --info-color: #8bedfd;
+    --debug-color: #50fa7c;
+    --warning-color: #feb86c;
+    --error-color: #ff5656;
+    --critical-color: #ff2728;
+    --string-color: #f080ff;
+    --border-header: 1px solid var(--pico-muted-border-color);
+    --pre-background-color: transparent;
+}
+
+html[data-theme="light"] {
+    --info-color: #0d8daa;
+    --debug-color: #078f29;
+    --warning-color: #be6200;
+    --error-color: #d61212;
+    --critical-color: #ff2929;
+    --string-color: #760399;
+    --border-header: 1px solid transparent;
+    --pre-background-color: white;
+}
+
+/* Alpine.js */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Icons for theme toggle */
+#moon-icon,
+[data-theme="dark"] #moon-icon,
+[data-theme="light"] #sun-icon {
+    display: none;
+}
+
+[data-theme="light"] #moon-icon,
+[data-theme="dark"] #sun-icon {
+    display: inline;
+    position: relative;
+    top: -4px;
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+/* Pico.css */
+.pico-primary-color {
+    color: var(--pico-primary);
+}
+
+/** Miscellaneous */
+main {
+    min-height: calc(90vh - 6rem);
+}
+
+[role="link"] {
+    cursor: pointer;
+}
+
+.transparent-background {
+    background-color: transparent !important;
+}
+
+.spaced {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hide {
+    display: none !important;
+}
+
+.right {
+    text-align: right;
+}
+
+#header-base {
+    box-shadow: var(--pico-box-shadow);
+    padding: 0.4rem 0;
+    border: var(--border-header);
+}
+
+#footer-base,
+#footer-base * {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/** Loglevel Coloring */
+
+.log-critical {
+    color: var(--critical-color);
+    font-weight: 900;
+}
+
+.log-error {
+    color: var(--error-color);
+}
+
+.log-warning {
+    color: var(--warning-color);
+}
+
+.log-info {
+    color: var(--info-color);
+}
+
+.log-debug {
+    color: var(--debug-color);
+}
+
+.highlight {
+    color: var(--string-color);
+}
+
+/** Log View */
+
+#div-pre-wrapper {
+    grid-template-columns: 4rem auto;
+    display: grid;
+    max-height: 70vh;
+    margin-top: 2rem;
+    overflow: auto;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+}
+
+#log-container pre {
+    padding: 0 0.25rem;
+    white-space: pre;
+    background-color: var(--pre-background-color);
+}
+
+#pre-line-counter {
+    text-align: right;
+    user-select: none;
+    pointer-events: none;
+    border-right: 2px solid var(--pico-muted-border-color);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+#pre-log-content {
+    color: var(--pico-color);
+}
