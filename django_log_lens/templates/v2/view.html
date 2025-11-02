@@ -91,10 +91,8 @@
   <div class="container">
     <article x-show="ui.activeTab === 'files'">
       <header class="spaced">
-        <b>Selected File:&nbsp;&nbsp;</b>
-        <span>
-          <code x-text="ui.selectedLogFile"></code>
-        </span>
+        <b>Selected File:</b>
+        <code x-text="ui.selectedLogFile"></code>
         <button @click="ui.activeTab = 'null'">✕</button>
       </header>
 
@@ -103,25 +101,36 @@
           <tr>
             <th>Handler</th>
             <th>File</th>
-            <th class="right">Actions&nbsp;</th>
+            <th>&nbsp;</th>
           </tr>
         </thead>
         <tbody>
-          {% for name, path in log_files.items %}
+          {% for handler, path in log_files.items %}
             <tr>
-              <td :class="{ 'pico-primary-color':  ui.selectedLogFile === '{{ path }}' }">{{ name }}</td>
+              <td :class="{ 'pico-primary-color':  ui.selectedLogFile === '{{ path }}' }">{{ handler }}</td>
               <td>
-                <code class="transparent-background">{{ path }}</code>
+                <a role="link"
+                   @click="ui.selectedLogFile='{{ path }}'; closeFileView();">
+                  <code class="transparent-background">{{ path }}</code>
+                </a>
               </td>
-              <td class="right">
-                <button class="outline"
-                        @click="ui.selectedLogFile='{{ path }}'; closeFileView();">→&nbsp;Load</button>
-                <a role="button"
-                   class="outline contrast"
-                   href="/logs/api/files/{{ path }}"
-                   download="{{ path }}">⤓&nbsp;Download</a>
-                {% comment %} todo adjust '/logs' {% endcomment %}
-                <button class="outline secondary" @click="">✕&nbsp;Clear</button>
+              <td>
+                <details class="dropdown">
+                  <summary>Actions</summary>
+                  <ul>
+                    <li>
+                      <a role="link"
+                         @click="ui.selectedLogFile='{{ path }}'; closeFileView();">→ Load</a>
+                    </li>
+                    <li>
+                      <a href="/logs/api/files/{{ path }}" download="{{ path }}">⤓ Download</a>
+                      <!-- todo adjust '/logs' -->
+                    </li>
+                    <li>
+                      <a>✕ Clear</a>
+                    </li>
+                  </ul>
+                </details>
               </td>
             </tr>
           {% endfor %}
@@ -132,7 +141,7 @@
 
     <article x-show="ui.activeTab === 'config'">
       <header class="spaced">
-        <b>Selected File:&nbsp;&nbsp;</b>
+        <b>Selected File:</b>
         <span>
           <code x-text="ui.selectedLogFile"></code>
           <a role="link" @click="ui.activeTab = 'files'">Change</a>
@@ -156,14 +165,12 @@
       <br />
       <div class="grid">
         <label>
-          &nbsp;
           <input name="opt-in" type="checkbox" role="switch" />
           Auto Refresh
           <span data-tooltip="Updates the selected log file when new lines are added">&nbsp;?&nbsp;</span>
         </label>
 
         <label>
-          &nbsp;
           <input name="opt-in"
                  type="checkbox"
                  role="switch"
@@ -177,7 +184,7 @@
 
     <article id="article-navigation" x-show="ui.activeTab === 'nav'">
       <header class="spaced">
-        <b>Selected File:&nbsp;&nbsp;</b>
+        <b>Selected File:</b>
         <span>
           <code x-text="ui.selectedLogFile"></code>
           <a role="link" @click="ui.activeTab = 'files'">Change</a>
@@ -188,23 +195,22 @@
         <button class="outline secondary" @click="scrollToTop()">↑ Top</button>
         <button class="outline secondary" @click="scrollToBottom()">↓ Bottom</button>
         &nbsp;
-        <button class="outline">←&nbsp;Prev Error</button>
-        <button class="outline">→&nbsp;Next Error</button>
-        <button class="outline">&gt;&gt;&nbsp;Latest Error</button>
+        <button class="outline">← Prev Error</button>
+        <button class="outline">→ Next Error</button>
+        <button class="outline">>> Latest Error</button>
       </div>
       <div class="grid">
         <input type="search"
                name="Line Number"
                placeholder="Go to Line"
-               x-model="ui.searchLine"
-               @input="searchLine(ui.searchLine)" />
+               @input="gotoLine($event.target.value)" />
         <input type="search" name="search" placeholder="Search" aria-label="Search" />
       </div>
     </article>
 
     <article x-show="ui.activeTab === 'numbers'">
       <header class="spaced">
-        <b>Selected File:&nbsp;&nbsp;</b>
+        <b>Selected File:</b>
         <span>
           <code x-text="ui.selectedLogFile"></code>
           <a role="link" @click="ui.activeTab = 'files'">Change</a>

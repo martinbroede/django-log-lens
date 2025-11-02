@@ -1,12 +1,68 @@
 /** @type {any} */ globalThis.Alpine;
 
 const NONE_SELECTED = "NONE SELECTED";
+const INITIAL_STATE = {
+  activeTab: localStorage.getItem("activeTab") || "files",
+  selectedLogFile: localStorage.getItem("selectedLogFile") || NONE_SELECTED,
+  logFile: {
+    timestamp: -1,
+    content: "",
+    lines: "",
+  },
+  state: {
+    isLoading: false,
+    fullWidth: localStorage.getItem("fullWidth") === "true",
+  },
+};
+
+const logger = {
+  prefix: "[Django Log Lens]",
+  level: new URLSearchParams(window.location.search).get("loglevel") || "error",
+  SEVERITY: {
+    debug: 10,
+    log: 20,
+    info: 30,
+    warn: 40,
+    error: 50,
+  },
+  debug(...args) {
+    if (this.SEVERITY[this.level] <= this.SEVERITY.debug) {
+      console.debug(this.prefix, ...args);
+    }
+  },
+  log(...args) {
+    if (this.SEVERITY[this.level] <= this.SEVERITY.log) {
+      console.log(this.prefix, ...args);
+    }
+  },
+  info(...args) {
+    if (this.SEVERITY[this.level] <= this.SEVERITY.info) {
+      console.info(this.prefix, ...args);
+    }
+  },
+  warn(...args) {
+    if (this.SEVERITY[this.level] <= this.SEVERITY.warn) {
+      console.warn(this.prefix, ...args);
+    }
+  },
+  error(...args) {
+    if (this.SEVERITY[this.level] <= this.SEVERITY.error) {
+      console.error(this.prefix, ...args);
+    }
+  },
+  assert(condition, ...args) {
+    if (!condition) {
+      this.error(...args);
+    }
+  }
+};
+
 
 /**
- * Searches and highlights a specific line number in the log content.
+ * Go to a specific line number in the log file display.
  * @param {number|string} lineNumber
  */
-function searchLine(lineNumber) {
+function gotoLine(lineNumber) {
   const lineElement = document.getElementById(`line-${lineNumber}`);
   const logWrapper = document.getElementById("div-pre-wrapper");
   if (lineElement) {
@@ -23,17 +79,7 @@ function searchLine(lineNumber) {
  */
 function initAlpineStore() {
   Alpine.store("ui", {
-    activeTab: localStorage.getItem("activeTab") || "files",
-    selectedLogFile: localStorage.getItem("selectedLogFile") || NONE_SELECTED,
-    logFile: {
-      timestamp: -1,
-      content: "",
-      lines: "",
-    },
-    state: {
-      isLoading: false,
-      fullWidth: localStorage.getItem("fullWidth") === "true",
-    },
+    ...INITIAL_STATE,
   });
 }
 
@@ -48,14 +94,14 @@ function scrollToTop() {
  * Scrolls to the bottom of the logfile content.
  */
 function scrollToBottom() {
-  const logContainer = document.getElementById("div-pre-wrapper");
-  logContainer.scrollTo({ top: logContainer.scrollHeight, behavior: "smooth" });
+  const logWrapper = document.getElementById("div-pre-wrapper");
+  logWrapper.scrollTo({ top: logWrapper.scrollHeight, behavior: "smooth" });
 }
 
 /**
  * Synchronize a property in Alpine.js store with localStorage.
  * @param {string} key The localStorage key to sync with.
- * @param {*} getProperty A function that returns the property to sync.
+ * @param {() => any} getProperty An Alpine.js store function that returns the property to sync.
  */
 function syncWithLocalStorage(key, getProperty) {
   Alpine.effect(() => {
@@ -74,7 +120,10 @@ function closeFileView() {
   }, 750);
 }
 
-function scrollToNavAfterPress() {
+/**
+ * Scroll to the article navigation when the navigation tab is activated.
+ */
+function initScrollBehaviour() {
   Alpine.effect(() => {
     if (Alpine.store("ui").activeTab === "nav") {
       setTimeout(() => {
@@ -97,7 +146,7 @@ function setUpAlpine() {
     syncWithLocalStorage("fullWidth", () => Alpine.store("ui").state.fullWidth);
     syncWithLocalStorage("activeTab", () => Alpine.store("ui").activeTab);
     syncWithLocalStorage("selectedLogFile", () => Alpine.store("ui").selectedLogFile);
-    scrollToNavAfterPress();
+    initScrollBehaviour();
 
     Alpine.effect(() => {
       const fileName = Alpine.store("ui").selectedLogFile;
@@ -108,12 +157,12 @@ function setUpAlpine() {
             data.lines = generateLineNumbers(data.content.split("\n").length);
             data.content = renderLogFileContent(data.content);
             Alpine.store("ui").logFile = data;
-            console.log("Fetched log file:", fileName);
           });
       } else {
         Alpine.store("ui").logFile = "";
       }
     });
+    logger.info("Alpine.js initialized.");
   });
 }
 

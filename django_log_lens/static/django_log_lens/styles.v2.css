@@ -51,6 +51,12 @@ main {
     min-height: calc(90vh - 6rem);
 }
 
+/* Adjusts dropdowns inside tables */
+td details summary {
+    margin-top: 1rem;
+    min-width: 8rem;
+}
+
 [role="link"] {
     cursor: pointer;
 }
