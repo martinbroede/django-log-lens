@@ -151,16 +151,19 @@
       <small>&nbsp;&nbsp;Foo bar todo explanation</small>
       <br />
       <br />
-      <div role="group">
+      <div class="grid">
         <label>
           &nbsp;
-          <input name="opt-in" type="checkbox" role="switch" checked />
+          <input name="opt-in" type="checkbox" role="switch" />
           Auto Refresh
+          <span data-tooltip="Updates the selected log file when new lines are added">&nbsp;?&nbsp;</span>
         </label>
+
         <label>
           &nbsp;
-          <input name="opt-in" type="checkbox" role="switch" checked />
-          Auto Refresh
+          <input name="opt-in" type="checkbox" role="switch" value="true" x-model="ui.state.fullWidth" />
+          Full Width
+          <span data-tooltip="Expands the log view to use the full width of the screen">&nbsp;?&nbsp;</span>
         </label>
       </div>
     </article>

@@ -32,6 +32,7 @@ function initAlpineStore() {
     },
     state: {
       isLoading: false,
+      fullWidth: localStorage.getItem("fullWidth") === "true",
     },
   });
 }
@@ -70,6 +71,15 @@ function syncSelectedLogFileWithLocalStorage() {
 }
 
 /**
+ * Synchronize the fullWidth state in Alpine.js store with localStorage on initialization.
+ */
+function syncFullWidthWithLocalStorage() {
+  Alpine.effect(() => {
+    localStorage.setItem("fullWidth", Alpine.store("ui").state.fullWidth);
+  });
+}
+
+/**
  * Move to navigation tab after choosing a file.
  */
 function closeFileView() {
@@ -102,6 +112,7 @@ function setUpAlpine() {
     initAlpineStore();
     syncActiveTabWithLocalStorage();
     syncSelectedLogFileWithLocalStorage();
+    syncFullWidthWithLocalStorage();
     scrollToNavAfterPress();
 
     Alpine.effect(() => {
