@@ -25,7 +25,7 @@ setuptools.setup(
     maintainer="Martin Broede",
     maintainer_email="martin.broede@gmail.com",
     license="MIT",
-    description="A lightweight Django app for viewing and managing log data conveniently",
+    description="Lightweight, Low-Config Logging for Django - View and Manage Log Data Conveniently",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     url="https://github.com/martinbroede/django-log-lens",

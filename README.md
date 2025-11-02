@@ -9,7 +9,7 @@
 [![Tests](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 [![Linter](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml)
 
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 [![Django](https://img.shields.io/badge/django-4.1%20%7C%204.2%20(LTS)%20%7C%205.0%20%7C%205.1%20%7C%205.2%20(LTS)-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 
 <br/>
@@ -72,24 +72,23 @@ Allows clients to send console logs to the server.
 <html>
   ...
   <body>
-    {% csrf_token %}
-    <!-- it's not necessary to render the CSRF token more than once,
-    so if you use it anywhere in your template, you can skip the line above -->
-    {% include 'js-logger.html' %}
-    <!-- include the script to send console logs to the server.
-    It will simply override the console methods (debug, info, warn...) in a
-    way they behave the same as before but also send the logs to the server.
-    Thus, the script does not interfere with your frontend framework and
-    can be used out-of-the-box. -->
+    {% include 'js-logger.html' %} <!-- #1 -->
     ...
   </body>
   <script>
-    throw new Error("Hello, Django Log Lens!");
-    /* You will find this error, including its stack trace, in a log file
-    if you configured django log lens as described below. */
+    throw new Error("Hello, Django Log Lens!"); // #2
   </script>
 </html>
 ```
+- \#1. Include the script to send console logs to the server.
+  It will simply override the console methods (debug, info, warn...) in a
+  way they behave the same as before but also send the logs to the server.
+  Thus, the script does not interfere with your frontend framework and
+  can be used out-of-the-box. You should use this only in development mode -
+  otherwise, clients will be able to send arbitrary logs to your server.
+  (not harmful, but may clutter your log files)
+- \#2. You will find errors, including their stack trace, in a log file
+  if you set up django log lens as described below.
 
 ## Getting Started
 
@@ -123,6 +122,10 @@ urlpatterns = [
 ```
 
 ### 4. Add a `LOGGING` configuration in your `settings.py`
+
+All you need to configure is the `LOG_FOLDER` where your log files are stored which should point to an existing folder.
+With your existing logging configuration, you are good to go.
+For semantic highlighting of log levels, either use `django_log_lens.LOG_FORMAT` or use the `django_log_lens.LEVEL_PREFIX` in your own format.
 
 Follow the instructions from the [official Django documentation](https://docs.djangoproject.com/en/5.0/topics/logging/#configuring-logging) to configure the logging system or use the example below.
 
