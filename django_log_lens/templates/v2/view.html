@@ -15,7 +15,7 @@
       </li>
     </ul>
 
-    <ul class="overflow-auto">
+    <ul class="hide-sm hide-md">
       <li>
         <div role="link"
              @click="ui.activeTab = 'files'"
@@ -34,14 +34,31 @@
     </ul>
 
     <ul>
-      <li></li>
-      {% logout_link %}
+      <li>{% logout_link %}</li>
       <li>{% theme_toggler %}</li>
     </ul>
+
   </nav>
 {% endblock header %}
 
 {% block main %}
+
+  <!-- menu for small screens -->
+  <div class="container spaced hide-lg">
+    &nbsp;
+    <div role="link"
+         @click="ui.activeTab = 'files'"
+         :class="{ 'secondary': ui.activeTab !== 'files' }">Files</div>
+    <div role="link"
+         @click="ui.activeTab = 'config'"
+         :class="{ 'secondary': ui.activeTab !== 'config'}">Config</div>
+    <div role="link"
+         @click="ui.activeTab = 'nav'"
+         :class="{ 'secondary': ui.activeTab !== 'nav'}">Navigation</div>
+    &nbsp;
+  </div>
+  <hr class="hide-lg" />
+
   <div class="container">
     <article x-show="ui.activeTab === 'files'">
       <header class="spaced">
@@ -138,8 +155,8 @@
       {% tab_header %}
 
       <div class="grid">
-        <button class="outline secondary" @click="scrollToTop()">↑ Top</button>
-        <button class="outline secondary" @click="scrollToBottom()">↓ Bottom</button>
+        <button class="outline contrast" @click="scrollToTop()">↑ Top</button>
+        <button class="outline contrast" @click="scrollToBottom()">↓ Bottom</button>
         <button class="outline">← Prev Error</button>
         <button class="outline">→ Next Error</button>
         <button class="outline">>> Latest Error</button>

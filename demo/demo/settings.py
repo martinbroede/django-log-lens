@@ -11,11 +11,11 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-^2huk-%dy*cq7s9jp54p2z0vyievlvjf9n@uo6#1_jt%i_z_1l'  # nosec B105
+SECRET_KEY = "don't use this one ;-)"  # nosec B105
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]  # not suitable for production, only for demo purposes
 
 INSTALLED_APPS = [
     'django.contrib.admin',

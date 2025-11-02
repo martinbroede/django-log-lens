@@ -95,7 +95,7 @@ td details summary {
 
 #login-container {
     max-width: 24rem;
-    margin: 2rem auto;
+    margin: 0 auto;
 }
 
 /** Loglevel Coloring */

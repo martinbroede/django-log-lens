@@ -23,14 +23,7 @@
 
     <ul>
       {% if user.is_authenticated %}
-        <li>
-          <form method="post" action="{% url 'log-lens:logout' %}">
-            {% csrf_token %}
-            <span role="link" @click="$el.closest('form').submit()">Logout
-              <b>{{ user.username }}</b>
-            </span>
-          </form>
-        </li>
+        <li>{% logout_link %}</li>
       {% endif %}
 
       <li>{% theme_toggler %}</li>
@@ -42,8 +35,8 @@
   <div class="container">
     <br />
     <br />
-    <br />
-    <br />
+    <br class="hide-sm" />
+    <br class="hide-sm" />
     <div id="login-container">
       <div>&nbsp;</div>
       <div>
