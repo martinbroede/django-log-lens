@@ -5,3 +5,4 @@ dist
 django_log_lens.egg-info
 logs
 *.sqlite3
+.coverage

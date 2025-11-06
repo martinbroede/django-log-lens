@@ -4,6 +4,9 @@ autopep8
 flake8
 isort
 
+coverage
+coverage-badge
+
 setuptools
 build
 twine

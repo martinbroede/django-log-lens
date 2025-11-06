@@ -19,3 +19,18 @@ if [ $? -ne 0 ]; then
   warn "Linter failed. Please fix the issues before committing."
   exit 1
 fi
+
+# run coverage, coverage-badge and make sure the coverage.svg is up to date:
+
+rm -f .coverage
+
+coverage run demo/manage.py test demo.test
+
+if [ $? -ne 0 ]; then
+  warn "Tests failed. Please fix the issues before committing."
+  exit 1
+fi
+
+coverage-badge -o coverage.svg -f
+
+git add coverage.svg
