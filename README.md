@@ -1,6 +1,6 @@
 [![Downloads](https://static.pepy.tech/badge/django-log-lens)](https://pypi.org/project/django-log-lens/)
 [![PyPI](https://img.shields.io/badge/PyPI-django--log--lens-blue)](https://pypi.org/project/django-log-lens/)
-[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmartinbroede%2Fdjango-log-lens%2Fmain%2FVERSION.json&query=version&label=Latest%20Version)](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/VERSION.json)
+[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com/martinbroede/django-log-lens/main/VERSION.json&query=version&label=Latest%20Version)](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/VERSION.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Published](https://img.shields.io/badge/Published%20on-Django%20Packages-0c3c26)](https://djangopackages.org/packages/p/django-log-lens/)
 
@@ -8,20 +8,24 @@
 [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml)
 [![Bandit](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml)
 [![Tests](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
-![Coverage](https://raw.githubusercontent.com/martinbroede/django-log-lens/refs/heads/main/coverage.svg)
+[![Coverage](https://martinbroede.github.io/django-log-lens/coverage/badge.svg)](https://martinbroede.github.io/django-log-lens/coverage)
 [![Linter](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml)
 
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 [![Django](https://img.shields.io/badge/django-4.1%20%7C%204.2%20(LTS)%20%7C%205.0%20%7C%205.1%20%7C%205.2%20(LTS)-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 
 <br/>
-<img width="830px" src="https://raw.githubusercontent.com/martinbroede/django-log-lens/main/django_log_lens/static/django_log_lens/logo.svg">
-<br/>
+
+<p align="center">
+  <img width="500px" src="https://raw.githubusercontent.com/martinbroede/django-log-lens/main/django_log_lens/static/django_log_lens/logo.svg">
+</p>
+
 <br/>
 
 Django Log Lens is a dependency-free, lightweight, and easy-to-use logging app for Django.
 It provides an interface to supervise log data while also serving as a useful tool for debugging.
-As a unique feature, it allows clients to send console logs to the server out of the box, working with any frontend framework by simply adding a single line of code to include the required script.
+As a unique feature, it allows clients to send console logs to the server out of the box, working with any frontend
+framework by simply adding a single line of code to include the required script.
 
 Want to try it out? [&rarr;Get started!](https://github.com/martinbroede/django-log-lens#getting-started)
 
