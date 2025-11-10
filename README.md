@@ -15,13 +15,17 @@
 [![Django](https://img.shields.io/badge/django-4.1%20%7C%204.2%20(LTS)%20%7C%205.0%20%7C%205.1%20%7C%205.2%20(LTS)-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 
 <br/>
-<img width="830px" src="https://raw.githubusercontent.com/martinbroede/django-log-lens/main/django_log_lens/static/django_log_lens/logo.svg">
-<br/>
+
+<p align="center">
+  <img width="500px" src="https://raw.githubusercontent.com/martinbroede/django-log-lens/main/django_log_lens/static/django_log_lens/logo.svg">
+</p>
+
 <br/>
 
 Django Log Lens is a dependency-free, lightweight, and easy-to-use logging app for Django.
 It provides an interface to supervise log data while also serving as a useful tool for debugging.
-As a unique feature, it allows clients to send console logs to the server out of the box, working with any frontend framework by simply adding a single line of code to include the required script.
+As a unique feature, it allows clients to send console logs to the server out of the box, working with any frontend
+framework by simply adding a single line of code to include the required script.
 
 Want to try it out? [&rarr;Get started!](https://github.com/martinbroede/django-log-lens#getting-started)
 
