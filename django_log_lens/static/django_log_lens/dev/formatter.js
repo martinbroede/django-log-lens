@@ -140,10 +140,12 @@ class LogRenderer {
 
     if (level >= 50) {
       spanClass = "critical";
-      contentId = `error-${this.errorCounter++}`;
+      contentId = `error-${this._generateRandomId()}`;
+      this.errorCounter++;
     } else if (level >= 40) {
       spanClass = "error";
-      contentId = `error-${this.errorCounter++}`;
+      contentId = `error-${this._generateRandomId()}`;
+      this.errorCounter++;
     } else if (level >= 30) {
       spanClass = "warning";
     } else if (level >= 20) {

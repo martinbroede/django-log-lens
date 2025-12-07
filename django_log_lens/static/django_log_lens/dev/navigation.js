@@ -25,6 +25,7 @@ function nextSearchResult() {
     return;
   }
 
+  pauseAutoRefresh();
   const currentIndex = searchResults.findIndex((elem) => elem.classList.contains("search-highlight"));
   let nextIndex = 0;
 
@@ -44,6 +45,7 @@ function nextSearchResult() {
  * Scrolls to the top of the logs.
  */
 function scrollToTop() {
+  pauseAutoRefresh();
   document.getElementById("div-pre-wrapper").scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -109,6 +111,7 @@ function gotoLine(lineNumber) {
   const lineElement = document.getElementById(`line-counter-${lineNumber}`);
   const logWrapper = document.getElementById("div-pre-wrapper");
   if (lineElement) {
+    pauseAutoRefresh();
     logWrapper.scrollTop = lineElement.offsetTop - logWrapper.offsetTop;
     lineElement.classList.add("highlight");
     setTimeout(() => {

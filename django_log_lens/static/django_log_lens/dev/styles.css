@@ -96,6 +96,8 @@ small {
     min-height: 32px;
 }
 
+/** Toast Messages */
+
 .msg-toast-success {
     border: 2px solid var(--pico-form-element-valid-border-color);
     background-color: var(--pico-background-color);
@@ -138,6 +140,7 @@ td details summary {
     border: none !important;
 }
 
+.cursor-pointer,
 * [role="link"] {
     cursor: pointer;
 }

@@ -6,12 +6,14 @@
   {% if LOG_LENS_DEBUG %}
     <script defer src="{% static 'django_log_lens/dev/alpinejs.v3.vendor.js' %}"></script>
     <script data-log-file-api-endpoint="{% url 'log-lens:log-file-api-endpoint' %}"
+            data-sse-api-endpoint="{% url 'log-lens:stream-api' %}"
             src="{% static 'django_log_lens/dev/main.js' %}"></script>
     <script src="{% static 'django_log_lens/dev/formatter.js' %}"></script>
     <script src="{% static 'django_log_lens/dev/util.js' %}"></script>
     <script src="{% static 'django_log_lens/dev/navigation.js' %}"></script>
   {% else %}
     <script data-log-file-api-endpoint="{% url 'log-lens:log-file-api-endpoint' %}"
+            data-sse-api-endpoint="{% url 'log-lens:stream-api' %}"
             defer
             src="{% static 'django_log_lens/main.generated.js' %}"></script>
   {% endif %}
@@ -57,9 +59,6 @@
   </nav>
 {% endblock header %}
 
-<!-- <div class="container show-xs show-sm show-md spaced"> -->
-<!-- <hr class="show-xs show-sm show-md" /> -->
-
 {% block main %}
   <main x-cloak>
     <!-- menu for small screens -->
@@ -98,7 +97,6 @@
                 <td :class="{ 'pico-primary':  ui.selectedLogSource === '{{ source }}' }">{{ handler }}</td>
                 <td class="spaced">
                   <span>
-                    <span class="no-border" data-tooltip="Log Source: File">{% icon_article %}</span>
                     <a role="link"
                        @click="ui.isInitialLoad = false; selectSource('{{ source }}');">
                       <code class="transparent-background">{{ source }}</code>
@@ -108,7 +106,7 @@
                     <div class="spaced">
                       {% if backup_slots|length > 0 %}
                         <details class="dropdown">
-                          <summary>Backup Slot</summary>
+                          <summary>Backup</summary>
                           <ul>
                             {% for slot in backup_slots %}
                               <li>
@@ -179,9 +177,10 @@
               <tr>
                 <td colspan="2">
 
-                    There are no viewable handlers configured,
-                    e.g. a FileHandler.<br/>
-                    Please review the <code>settings.py</code> file.
+                  There are no viewable handlers configured,
+                  e.g. a FileHandler.
+                  <br />
+                  Please review the <code>settings.py</code> file.
                 </td>
               </tr>
             {% endif %}
@@ -227,33 +226,6 @@
         <hr />
         <br />
         <div class="grid">
-          <label>
-            <input type="checkbox"
-                   role="switch"
-                   :value="ui.fullWidth"
-                   @change="ui.fullWidth = $event.target.checked" />
-            Full Width
-            <span class="no-border"
-                  data-tooltip="Expands the log view to the full width of the screen">&nbsp;{% icon_help %}</span>
-          </label>
-
-          <label>
-            <input type="checkbox"
-                   role="switch"
-                   @change="ui.autoRefresh = $event.target.checked"
-                   :value="ui.autoRefresh" />
-            Auto Refresh
-            <span class="no-border"
-                  data-tooltip="Updates the selected log when new lines are added">&nbsp;{% icon_help %}</span>
-            <br />
-            <br />
-          </label>
-        </div>
-
-        <hr />
-        <br />
-
-        <div class="grid">
           <div>
             <input type="number"
                    min="10"
@@ -264,7 +236,19 @@
                    :value="ui.limitLinesTo" />
             <small>Limit Number of Log Lines</small>
           </div>
-          &nbsp;
+          <div class="spaced">
+            &nbsp;
+            <label>
+              <input type="checkbox"
+                     role="switch"
+                     :value="ui.fullWidth"
+                     @change="ui.fullWidth = $event.target.checked" />
+              Full Width
+              <span class="no-border"
+                    data-tooltip="Expands the log view to the full width of the screen">&nbsp;{% icon_help %}</span>
+            </label>
+            &nbsp;
+          </div>
         </div>
 
         {% tab_footer %}
@@ -310,11 +294,18 @@
             <button @click="nextSearchResult()">{% icon_search class="icon-btn-centered" %}</button>
           </div>
 
-          <button class="outline contrast limit-height"
-                  @click="fetchLogSourceContent(true);">
-            {% icon_refresh class='icon-btn' %}
-            Refresh
-          </button>
+          <div role="group">
+            <button class="outline contrast limit-height"
+                    title="Refresh Log Source"
+                    @click="fetchLogSourceContent(true);">{% icon_refresh class='icon-btn' %}</button>
+            &nbsp;&nbsp;
+            <button class="outline contrast limit-height"
+                    title="Toggle Auto-Refresh"
+                    @click="ui.autoRefresh = !ui.autoRefresh;">
+              <span x-show="ui.autoRefresh">{% icon_pause_circle class='icon-btn' %}</span>
+              <span x-show="!ui.autoRefresh">{% icon_play_circle class='icon-btn' %}</span>
+            </button>
+          </div>
         </div>
 
         {% tab_footer %}
@@ -361,10 +352,4 @@
     </template>
   </main>
 
-  <script>
-      const evtSource = new EventSource("{% url 'log-lens:stream-api' %}");
-      evtSource.onmessage = function(e) {
-          console.log(e.data);
-      };
-  </script>
 {% endblock main %}

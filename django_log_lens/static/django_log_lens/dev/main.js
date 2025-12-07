@@ -1,9 +1,12 @@
 /** @type {any} */ globalThis.Alpine;
 
-const API_ENDPOINT = document
+const LOG_FILE_API_ENDPOINT = document
   .querySelectorAll("script[data-log-file-api-endpoint]")[0]
   .getAttribute("data-log-file-api-endpoint");
-/** Threshold for number of lines to render immediately */
+
+const SSE_API_ENDPOINT = document
+  .querySelectorAll("script[data-sse-api-endpoint]")[0]
+  .getAttribute("data-sse-api-endpoint");
 
 const REFRESH_SUCCESS_MESSAGE = "Refreshed Contents";
 
@@ -19,6 +22,8 @@ const GENERIC_ERROR_MESSAGE_SHORT = "An Error Occurred. Please Check Console.";
 const INITIAL_LOG_SOURCE = { content: "", lines: "" };
 
 const NONE_SELECTED = "NONE SELECTED";
+
+let logRenderer = null;
 
 /**
  * List of keys in the Alpine.js store to synchronize with localStorage
@@ -130,22 +135,27 @@ function mimicRouting() {
   });
 }
 
-/**
- * Set up Alpine.js store and effects for managing UI state.
- * - activeTab: The currently active tab in the UI.
- * - selectedLogSource: The currently selected log source.
- * - logSource: The content and metadata of the selected log source.
+/*
+ * General setup function to initialize Alpine.js store and related behaviors.
  */
-function setUpAlpine() {
+function setUp() {
   document.addEventListener("alpine:init", () => {
     Alpine.store("ui", INITIAL_STATE);
     syncWithLocalStorage(SYNC_WITH_LOCAL_STORAGE_KEYS);
+    handleAutoRefreshToggle();
     addOptionalWordBreaks();
     syncSelectedLogSource();
     mimicRouting();
     initNavScrollBehaviour();
     logger.info("Alpine.js initialized.");
   });
+}
+
+function pauseAutoRefresh() {
+  if (Alpine.store("ui").autoRefresh) {
+    Alpine.store("ui").autoRefresh = false;
+    toast("Auto-Refresh Paused", 1000);
+  }
 }
 
 function invalidateSearchResults() {
@@ -185,39 +195,26 @@ async function fetchLogSourceContent(forceReload = false) {
 
   invalidateSearchResults();
   Alpine.store("ui").isLoading = true;
-  const logSource = await getLogFile(sourceName);
+  const logData = await getLogFile(sourceName);
 
-  switch (logSource) {
-    case MISCONFIGURATION: {
-      const err = markAsError(
-        MISCONFIGURATION + " - Please review your LOGGING settings<br/>in your settings.py file."
-      );
-      onAfterFetchLogSourceContent(err);
-      return;
-    }
-    case MSG_NO_LOG_DATA: {
-      const err = markAsError(MSG_NO_LOG_DATA);
+  if (!logData.success) {
+    const err = markAsError(logData.content);
+    onAfterFetchLogSourceContent(err);
+    if (logData.content === MSG_NO_LOG_DATA) {
       toast(MSG_NO_LOG_DATA, 3000, "error");
-      onAfterFetchLogSourceContent(err);
-      return;
-    }
-    case GENERIC_ERROR_MESSAGE: {
-      const err = markAsError(GENERIC_ERROR_MESSAGE);
+    } else if (logData.content === GENERIC_ERROR_MESSAGE) {
       toast(GENERIC_ERROR_MESSAGE_SHORT, 3000, "error");
-      onAfterFetchLogSourceContent(err);
-      return;
     }
-    default: {
-      const limitLinesTo = Alpine.store("ui").limitLinesTo;
-      const renderer = new LogRenderer(logSource, limitLinesTo);
-      renderer.renderLogContent();
-      renderer.appendLogContent("bar\nbaz\nfoo\n");
-      const content = renderer.getRenderedLogContent();
-      const lineNumbers = renderer.generateLineNumbers();
-      onAfterFetchLogSourceContent(content, lineNumbers, renderer.errorCounter, forceReload);
-      if (forceReload) {
-        toast(REFRESH_SUCCESS_MESSAGE, 1000, "success");
-      }
+    return;
+  } else {
+    const limitLinesTo = Alpine.store("ui").limitLinesTo;
+    logRenderer = new LogRenderer(logData.content, limitLinesTo);
+    logRenderer.renderLogContent();
+    const content = logRenderer.getRenderedLogContent();
+    const lineNumbers = logRenderer.generateLineNumbers();
+    onAfterFetchLogSourceContent(content, lineNumbers, logRenderer.errorCounter, forceReload);
+    if (forceReload) {
+      toast(REFRESH_SUCCESS_MESSAGE, 1000, "success");
     }
   }
 }
@@ -243,31 +240,41 @@ function onAfterFetchLogSourceContent(content, lines = "", errorCount = 0, force
 /**
  * Fetches the log source content from the backend API.
  * @param {string} pathToFile The path to the log source on the server.
+ * @param {number} fromLine The line number to start fetching from.
+ * @return {Promise<{content: string, success: boolean}>} Returns a promise that resolves to the log content including success status.
  */
-async function getLogFile(pathToFile) {
-  const url = API_ENDPOINT + "/" + encodeURIComponent(pathToFile) + "/";
+async function getLogFile(pathToFile, fromLine = 0) {
+  const fromLineParam = fromLine > 0 ? `?from=${fromLine}` : "";
+  const url = `${LOG_FILE_API_ENDPOINT}/${encodeURIComponent(pathToFile)}/${fromLineParam}`;
 
   if (pathToFile && pathToFile !== NONE_SELECTED) {
     let resp = null;
-    return await fetch(url)
+    let success = true;
+    const content = await fetch(url, {
+      method: "GET",
+      redirect: "error",
+    })
       .then((response) => {
         resp = response;
         return response.text();
       })
-      .then((logSource) => {
-        if (!resp.ok) {
-          logger.error(`Failed to fetch log source (${resp.status}):\n${logSource}`);
-          return GENERIC_ERROR_MESSAGE;
+      .then((content) => {
+        if (resp.status != 200) {
+          logger.error(`Failed to fetch log source (status:${resp.status})`);
+          success = false;
+          return Promise.resolve(GENERIC_ERROR_MESSAGE);
         }
-        return Promise.resolve(logSource);
+        return Promise.resolve(content);
       })
       .catch((error) => {
+        success = false;
         logger.error("Caught error while fetching log source:", error);
         return Promise.resolve(GENERIC_ERROR_MESSAGE);
       });
+    return Promise.resolve({ content, success });
   } else {
     logger.debug("No log source selected, returning empty content.");
-    return Promise.resolve("");
+    return Promise.resolve({ content: "", success: true });
   }
 }
 
@@ -276,7 +283,7 @@ async function getLogFile(pathToFile) {
  * @param {string} fileLocation The file location on the server.
  */
 function clearLogFile(fileLocation) {
-  const url = API_ENDPOINT + "/" + encodeURIComponent(fileLocation) + "/";
+  const url = LOG_FILE_API_ENDPOINT + "/" + encodeURIComponent(fileLocation) + "/";
   fetch(url, {
     method: "DELETE",
     headers: {
@@ -314,4 +321,71 @@ function toast(message, timeout = 2000, type = "success") {
   Alpine.store("ui").toast.push(message, timeout, type);
 }
 
-setUpAlpine();
+function setUpSSE() {
+  const evtSource = new EventSource(SSE_API_ENDPOINT);
+
+  evtSource.onerror = function (e) {
+    logger.error("SSE connection error:", e);
+    evtSource.close();
+  };
+
+  evtSource.onmessage = async function (e) {
+    logger.debug("SSE message received:", e.data);
+    const autoRefresh = Alpine.store("ui").autoRefresh;
+    if (!autoRefresh) {
+      evtSource.close();
+      return;
+    }
+    try {
+      const jsonData = JSON.parse(e.data);
+      if (jsonData.action === "rotate" && jsonData.source === Alpine.store("ui").selectedLogSource) {
+        fetchLogSourceContent();
+      } else if (
+        jsonData.action === "append" &&
+        jsonData.source === Alpine.store("ui").selectedLogSource &&
+        logRenderer
+      ) {
+        const logData = await getLogFile(jsonData.source, logRenderer.totalLines);
+        if (logData.success) {
+          logRenderer.appendLogContent(logData.content);
+          const content = logRenderer.getRenderedLogContent();
+          const lineNumbers = logRenderer.generateLineNumbers();
+          invalidateSearchResults();
+          onAfterFetchLogSourceContent(content, lineNumbers, logRenderer.errorCounter, true);
+        } else {
+          evtSource.close();
+          logger.info("SSE connection closed due to failed log fetch after append.");
+        }
+        scrollToBottom();
+      }
+    } catch (err) {
+      logger.error("Failed to parse SSE data:", err);
+    }
+  };
+  return evtSource;
+}
+
+/**
+ * Function to be called when the refresh status changes.
+ */
+function handleAutoRefreshToggle() {
+  let evtSource = null;
+  Alpine.effect(() => {
+    const autoRefresh = Alpine.store("ui").autoRefresh;
+    if (autoRefresh) {
+      evtSource = setUpSSE();
+      fetchLogSourceContent(true);
+      toast("Auto-Refresh Enabled", 1000, "success");
+      logger.info("Auto-refresh enabled, SSE connection established.");
+    } else {
+      toast("Auto-Refresh Paused", 1000, "success");
+      if (evtSource) {
+        evtSource.close();
+        evtSource = null;
+        logger.debug("SSE connection closed.");
+      }
+    }
+  });
+}
+
+setUp();
