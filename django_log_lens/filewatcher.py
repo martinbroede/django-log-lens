@@ -6,6 +6,7 @@ from typing import Callable
 class FileWatcher:
     """
     Utility class to watch for file changes and trigger callbacks on modifications.
+    When instantiated, it starts a background thread that monitors the specified file.
     """
 
     def __init__(self, filepath: str, interval: float, callback: Callable):

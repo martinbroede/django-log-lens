@@ -264,16 +264,7 @@
                    :value="ui.limitLinesTo" />
             <small>Limit Number of Log Lines</small>
           </div>
-          <div>
-            <input type="number"
-                   min="1"
-                   name="refresh-interval"
-                   aria-label="Refresh Interval (seconds)"
-                   x-bind:disabled="!ui.autoRefresh"
-                   @input="ui.refreshInterval = $event.target.value;"
-                   :value="ui.refreshInterval" />
-            <small>Refresh Interval in Seconds</small>
-          </div>
+          &nbsp;
         </div>
 
         {% tab_footer %}

@@ -27,7 +27,6 @@ const NONE_SELECTED = "NONE SELECTED";
 const SYNC_WITH_LOCAL_STORAGE_KEYS = [
   "fullWidth",
   "autoRefresh",
-  "refreshInterval",
   "selectedLogSource",
   "searchTerm",
   "limitLinesTo",
@@ -48,7 +47,6 @@ const INITIAL_STATE = {
   isLoading: false,
   limitLinesTo: localStorage.getItem("limitLinesTo") || 1000,
   logSource: INITIAL_LOG_SOURCE,
-  refreshInterval: localStorage.getItem("refreshInterval") || 30,
   searchResults: [],
   searchTerm: localStorage.getItem("searchTerm") || "",
   selectedForClearing: NONE_SELECTED,
@@ -146,23 +144,8 @@ function setUpAlpine() {
     syncSelectedLogSource();
     mimicRouting();
     initNavScrollBehaviour();
-    initAutoRefresh();
     logger.info("Alpine.js initialized.");
   });
-}
-
-function initAutoRefresh() {
-  let refreshInterval = parseInt(Alpine.store("ui").refreshInterval);
-  if (isNaN(refreshInterval) || refreshInterval < 1) {
-    refreshInterval = 30;
-  }
-  setTimeout(() => {
-    setTimeout(initAutoRefresh, (refreshInterval * 1000) / 2);
-    if (Alpine.store("ui").autoRefresh) {
-      fetchLogSourceContent(true);
-      logger.debug("Auto-refreshed log source.");
-    }
-  }, (refreshInterval * 1000) / 2);
 }
 
 function invalidateSearchResults() {
