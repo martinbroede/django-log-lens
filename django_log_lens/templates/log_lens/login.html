@@ -1,0 +1,78 @@
+{% extends "log_lens/base.html" %}
+{% load static %}
+{% load log_lens_components %}
+
+{% block header %}
+  <nav class="container">
+    <ul>
+      <li>
+        <img id="img-logo"
+             width="40px"
+             height="auto"
+             src="{% static 'django_log_lens/favicon.svg' %}"
+             alt="Django Log Lens" />
+      </li>
+    </ul>
+
+    <ul>
+      Django&nbsp;Log&nbsp;Lens
+      <br class="show-xs show-sm" />
+      <span class="show-md show-lg show-xl">&nbsp;·&nbsp;</span>
+      Login&nbsp;Page
+    </ul>
+
+    <ul>
+      {% if user.is_authenticated %}
+        <li>{% logout_link %}</li>
+      {% endif %}
+
+      <li>{% theme_toggler %}</li>
+    </ul>
+  </nav>
+{% endblock header %}
+
+{% block main %}
+  <main>
+    <div class="container">
+      <br />
+      <br />
+      <br />
+      <br />
+      <div id="login-container">
+        <div>&nbsp;</div>
+        <div>
+
+          <form method="post">
+            <article>
+              <label for="username">
+                Username:
+                <input type="text"
+                       name="username"
+                       id="username"
+                       required
+                       {% if error_message %}aria-invalid="true"{% endif %}
+                       aria-describedby="invalid-helper" />
+              </label>
+
+              <label for="password">
+                Password:
+                <input type="password"
+                       name="password"
+                       id="password"
+                       required
+                       {% if error_message %}aria-invalid="true"{% endif %} />
+                <small id="invalid-helper">{{ error_message }}</small>
+              </label>
+              <footer>
+                <button id="btn-login-submit" type="submit">Login</button>
+                {% csrf_token %}
+              </footer>
+            </article>
+          </form>
+
+        </div>
+        <div>&nbsp;</div>
+      </div>
+    </div>
+  </main>
+{% endblock main %}

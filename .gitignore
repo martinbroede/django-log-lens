@@ -3,6 +3,7 @@ __pycache__
 build
 dist
 django_log_lens.egg-info
+staticfiles
 logs
 *.sqlite3
 .coverage

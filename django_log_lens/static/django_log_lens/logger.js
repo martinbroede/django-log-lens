@@ -1,11 +1,12 @@
 "use strict";
 
+const LOG_LENS_POST_API = document.currentScript.getAttribute("data-log-post-api");
+
 /**
  * Looks for an input element with the name "csrfmiddlewaretoken" and returns its value.
  * @returns {string} CSRF token
  */
 function getCSRFToken() {
-  // source https://gist.github.com/sirodoht/fb7a6e98d33fc460d4f1eadaff486e7b - thanks!
   const inputElements = document.querySelectorAll("input");
   let csrfToken = "";
   for (let i = 0; i < inputElements.length; ++i) {
@@ -147,7 +148,8 @@ console.error = function () {
 console.assert = function () {
   logLensLogger.logAssertion(...arguments);
   if (!arguments[0]) {
-    logLensLogger.log("ASSERTION FAILED (CRITICAL)", arguments, getStackTrace());
+    const args = Array.prototype.slice.call(arguments, 1);
+    logLensLogger.log("ASSERTION FAILED (CRITICAL)", args, getStackTrace());
   }
 };
 

@@ -1,0 +1,379 @@
+{% extends "log_lens/base.html" %}
+{% load static %}
+{% load log_lens_components %}
+
+{% block scripts %}
+  {% if LOG_LENS_DEBUG %}
+    <script defer src="{% static 'django_log_lens/dev/alpinejs.v3.vendor.js' %}"></script>
+    <script data-log-file-api-endpoint="{% url 'log-lens:log-file-api-endpoint' %}"
+            src="{% static 'django_log_lens/dev/main.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/formatter.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/util.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/navigation.js' %}"></script>
+  {% else %}
+    <script data-log-file-api-endpoint="{% url 'log-lens:log-file-api-endpoint' %}"
+            defer
+            src="{% static 'django_log_lens/main.generated.js' %}"></script>
+  {% endif %}
+{% endblock scripts %}
+
+{% block header %}
+
+  <nav class="container">
+    <ul>
+      <li>
+        <img id="img-logo"
+             width="40px"
+             height="auto"
+             src="{% static 'django_log_lens/favicon.svg' %}"
+             alt="Django Log Lens" />
+        &nbsp;Django Log Lens
+      </li>
+    </ul>
+
+    <ul class="show-lg show-xl">
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'sources'"
+             :class="{ 'secondary': ui.activeTab !== 'sources' }">Sources</div>
+      </li>
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'config'"
+             :class="{ 'secondary': ui.activeTab !== 'config'}">Config</div>
+      </li>
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'nav'"
+             :class="{ 'secondary': ui.activeTab !== 'nav'}">Navigation</div>
+      </li>
+    </ul>
+
+    <ul>
+      <li>{% logout_link %}</li>
+      <li>{% theme_toggler %}</li>
+    </ul>
+
+  </nav>
+{% endblock header %}
+
+<!-- <div class="container show-xs show-sm show-md spaced"> -->
+<!-- <hr class="show-xs show-sm show-md" /> -->
+
+{% block main %}
+  <main x-cloak>
+    <!-- menu for small screens -->
+    <div class="show-xs show-sm show-md">
+      <div class="container spaced">
+        &nbsp;
+        <div role="link"
+             @click="ui.activeTab = 'sources'"
+             :class="{ 'secondary': ui.activeTab !== 'sources' }">Sources</div>
+        <div role="link"
+             @click="ui.activeTab = 'config'"
+             :class="{ 'secondary': ui.activeTab !== 'config'}">Config</div>
+        <div role="link"
+             @click="ui.activeTab = 'nav'"
+             :class="{ 'secondary': ui.activeTab !== 'nav'}">Navigation</div>
+        &nbsp;
+      </div>
+      <hr />
+    </div>
+
+    <div class="container">
+      <article x-show="ui.activeTab === 'sources'">
+
+        {% tab_header %}
+
+        <table>
+          <thead>
+            <tr>
+              <th>Handler</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for handler, source, name, backup_slots in log_sources %}
+              <tr>
+                <td :class="{ 'pico-primary':  ui.selectedLogSource === '{{ source }}' }">{{ handler }}</td>
+                <td class="spaced">
+                  <span>
+                    <span class="no-border" data-tooltip="Log Source: File">{% icon_article %}</span>
+                    <a role="link"
+                       @click="ui.isInitialLoad = false; selectSource('{{ source }}');">
+                      <code class="transparent-background">{{ source }}</code>
+                    </a>
+                  </span>
+                  {% if name != 'MISCONFIGURATION' %}
+                    <div class="spaced">
+                      {% if backup_slots|length > 0 %}
+                        <details class="dropdown">
+                          <summary>Backup Slot</summary>
+                          <ul>
+                            {% for slot in backup_slots %}
+                              <li>
+                                <a role="link" @click="selectSource('{{ slot.0 }}');">{% icon_document_search %} {{ slot.1 }}</a>
+                              </li>
+                              <li>
+                                <a href="{% url 'log-lens:log-file-api-endpoint' %}/{{ slot.0 }}/"
+                                   download="{{ slot.1 }}"
+                                   @click="$el.closest('details').removeAttribute('open');">{% icon_download %} {{ slot.1 }}</a>
+                              </li>
+                              <hr />
+                            {% endfor %}
+                          </ul>
+                        </details>
+                        &nbsp;&nbsp;
+                      {% endif %}
+                      <details class="dropdown">
+                        <summary>Actions</summary>
+                        <ul>
+                          <li>
+                            <a role="link" @click="selectSource('{{ source }}');">{% icon_document_search %} Load</a>
+                          </li>
+                          <li>
+                            <a href="{% url 'log-lens:log-file-api-endpoint' %}/{{ source }}/"
+                               download="{{ name }}"
+                               @click="$el.closest('details').removeAttribute('open');">{% icon_download %} Download</a>
+                          </li>
+                          <li>
+                            <a role="link"
+                               @click="$el.closest('details').removeAttribute('open'); ui.selectedForClearing='{{ source }}'; document.getElementById('dialog-clear-logfile').showModal();">
+                              {% icon_delete %}
+                            Clear</a>
+                          </li>
+                        </ul>
+                      </details>
+                    </div>
+                  {% else %}
+                    <!-- might seem odd in a for loop, but there can only be one misconfiguration entry -->
+                    <dialog open>
+                      <article>
+                        <header class="spaced">
+                          <h2>Misconfiguration Detected</h2>
+                        </header>
+                        <p class="warning">
+                          There seems to be a misconfiguration in your Django
+                          settings. Please review your settings.py file to ensure that the log
+                          handlers are correctly set up.
+                          Make sure there are supported handlers configured,
+                          e.g. FileHandler or RotatingFileHandler.
+                          <hr />
+                          For more information, please refer to the
+                          <a href="https://github.com/martinbroede/django-log-lens"
+                             target="_blank"
+                             rel="noopener noreferrer">documentation</a>.
+                          <!-- todo-#2 adjust when separate docs are available. -->
+                        </p>
+                        <footer>
+                          <button @click="$el.closest('dialog').close();">Close</button>
+                        </footer>
+                      </article>
+                    </dialog>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+
+            {% if not log_sources %}
+              <tr>
+                <td colspan="2">
+
+                    There are no viewable handlers configured,
+                    e.g. a FileHandler.<br/>
+                    Please review the <code>settings.py</code> file.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+
+        {% tab_footer %}
+
+      </article>
+
+      <article x-show="ui.activeTab === 'config'">
+
+        {% tab_header %}
+
+        <div class="grid">
+          <div>
+            <input type="text"
+                   name="path-splitter"
+                   placeholder="e.g. /app"
+                   :value="ui.pathSplitter"
+                   @input="ui.pathSplitter = $event.target.value;"
+                   aria-label="Path Splitter" />
+            <small>Path Splitter</small>
+          </div>
+          <div>
+            <input type="text"
+                   name="path-prefix"
+                   placeholder="e.g. /home/john-doe/projects"
+                   :value="ui.pathPrefix"
+                   @input="ui.pathPrefix = $event.target.value;"
+                   aria-label="Path Prefix" />
+            <small>Path Prefix</small>
+          </div>
+        </div>
+        <br />
+        <details>
+          <summary>How to configure this {% icon_help %}</summary>
+          <blockquote>
+            todo - write instructions on how to use path splitter and path prefix
+          </blockquote>
+        </details>
+        <br />
+        <hr />
+        <br />
+        <div class="grid">
+          <label>
+            <input type="checkbox"
+                   role="switch"
+                   :value="ui.fullWidth"
+                   @change="ui.fullWidth = $event.target.checked" />
+            Full Width
+            <span class="no-border"
+                  data-tooltip="Expands the log view to the full width of the screen">&nbsp;{% icon_help %}</span>
+          </label>
+
+          <label>
+            <input type="checkbox"
+                   role="switch"
+                   @change="ui.autoRefresh = $event.target.checked"
+                   :value="ui.autoRefresh" />
+            Auto Refresh
+            <span class="no-border"
+                  data-tooltip="Updates the selected log when new lines are added">&nbsp;{% icon_help %}</span>
+            <br />
+            <br />
+          </label>
+        </div>
+
+        <hr />
+        <br />
+
+        <div class="grid">
+          <div>
+            <input type="number"
+                   min="10"
+                   max="10000"
+                   name="limit-log-lines"
+                   aria-label="Limit Log Lines"
+                   @input="ui.limitLinesTo = $event.target.value;"
+                   :value="ui.limitLinesTo" />
+            <small>Limit Number of Log Lines</small>
+          </div>
+          <div>
+            <input type="number"
+                   min="1"
+                   name="refresh-interval"
+                   aria-label="Refresh Interval (seconds)"
+                   x-bind:disabled="!ui.autoRefresh"
+                   @input="ui.refreshInterval = $event.target.value;"
+                   :value="ui.refreshInterval" />
+            <small>Refresh Interval in Seconds</small>
+          </div>
+        </div>
+
+        {% tab_footer %}
+
+      </article>
+
+      <article x-show="ui.activeTab === 'nav'">
+
+        {% tab_header %}
+
+        <div class="grid" id="div-navigation-buttons">
+          <button class="outline contrast" @click="scrollToTop()">{% icon_arrow_up class="icon-btn" %} Top</button>
+          <button class="outline contrast" @click="scrollToBottom()">{% icon_arrow_down class="icon-btn" %} Bottom</button>
+          <button class="outline"
+                  x-bind:disabled="ui.errorCount === 0"
+                  @click="gotoPrevError()">{% icon_arrow_left class="icon-btn" %} Prev Error</button>
+          <button class="outline"
+                  x-bind:disabled="ui.errorCount === 0"
+                  @click="gotoNextError()">{% icon_arrow_right class="icon-btn" %} Next Error</button>
+          <button class="outline"
+                  x-bind:disabled="ui.errorCount === 0"
+                  @click="gotoLatestError()">{% icon_double_arrow class="icon-btn" %} Latest Error</button>
+        </div>
+
+        <br />
+
+        <div class="grid">
+          <div role="group">
+            <input name="Line Number"
+                   placeholder="Go to Line"
+                   aria-label="Go to Line"
+                   @keyup.enter="gotoLine($event.target.value)" />
+            <button @click="gotoLine($el.previousElementSibling.value);">{% icon_jump_to class="icon-btn-centered" %}</button>
+          </div>
+
+          <div role="group">
+            <input name="Search"
+                   placeholder="Search"
+                   aria-label="Search"
+                   @keyup.enter="nextSearchResult()"
+                   @change="invalidateSearchResults()"
+                   @input="ui.searchTerm = $event.target.value" />
+            <button @click="nextSearchResult()">{% icon_search class="icon-btn-centered" %}</button>
+          </div>
+
+          <button class="outline contrast limit-height"
+                  @click="fetchLogSourceContent(true);">
+            {% icon_refresh class='icon-btn' %}
+            Refresh
+          </button>
+        </div>
+
+        {% tab_footer %}
+
+      </article>
+    </div>
+
+    <div id="log-container"
+         :class="{ 'container-fluid': ui.fullWidth, 'container': !ui.fullWidth }"
+         x-show="(ui.activeTab === 'nav' || ui.activeTab === 'blank') && ui.selectedLogSource !== 'NONE SELECTED'">
+      <div id="div-pre-wrapper">
+        <pre id="pre-line-counter" x-html="ui.logSource.lines"></pre>
+        <pre id="pre-log-content" x-html="ui.logSource.content"></pre>
+      </div>
+    </div>
+
+    <!-- Dialogs -->
+    <dialog id="dialog-clear-logfile">
+      <article>
+        <header class="spaced">
+          <h2>Clear Log Source</h2>
+        </header>
+        <p class="error">
+          <code class="transparent-background" x-text="ui.selectedForClearing"></code>
+          <br />
+          Are you sure you want to clear this logfile? This action cannot be undone.
+        </p>
+        <footer>
+          <button class="secondary" @click="$el.closest('dialog').close();">Cancel</button>
+          <a role="button"
+             @click="$el.closest('dialog').close(); clearLogFile(ui.selectedForClearing);">Confirm</a>
+
+        </footer>
+      </article>
+    </dialog>
+
+    <template x-for="(t, i) in $store.ui.toast.items" :key="i">
+      <div class="msg-toast"
+           :class="{ 'msg-toast-success': t.type === 'success', 'msg-toast-error': t.type === 'error' }">
+        <div x-show="t.type === 'error'">{% icon_error class="icon-toast" %}</div>
+        <div x-show="t.type === 'success'">{% icon_check_circle class="icon-toast" %}</div>
+        <span x-text="t.message"></span>
+      </div>
+    </template>
+  </main>
+
+  <script>
+      const evtSource = new EventSource("{% url 'log-lens:stream-api' %}");
+      evtSource.onmessage = function(e) {
+          console.log(e.data);
+      };
+  </script>
+{% endblock main %}

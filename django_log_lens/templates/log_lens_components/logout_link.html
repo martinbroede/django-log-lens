@@ -1,0 +1,6 @@
+<form method="post" action="{% url 'log-lens:logout' %}">
+  {% csrf_token %}
+  <span role="link" class="secondary" onclick="this.closest('form').submit();">Logout
+    <b>{{ user.username }}</b>
+  </span>
+</form>

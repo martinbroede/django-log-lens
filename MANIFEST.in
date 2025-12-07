@@ -2,5 +2,4 @@ include LICENSE.txt
 include MANIFEST.in
 include README.md
 include VERSION.json
-recursive-include django_log_lens/static *
-recursive-include django_log_lens/templates *
+recursive-include third-party *

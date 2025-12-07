@@ -17,6 +17,7 @@ with open(PARENT_FOLDER / "VERSION.json", "r") as f:
     version_json = f.read()
     VERSION = json.loads(version_json)["version"]
 
+
 setuptools.setup(
     name="django-log-lens",
     version=VERSION,
@@ -29,8 +30,15 @@ setuptools.setup(
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     url="https://github.com/martinbroede/django-log-lens",
-    packages=['django_log_lens'],
-    include_package_data=True,
+    packages=['django_log_lens', 'django_log_lens.templatetags'],
+    include_package_data=False,
+    package_data={
+        'django_log_lens': [
+            'templates/**/*',
+            'static/django_log_lens/*',  # excludes the "dev" folder in static
+            'static/django_log_lens/vendor/*',
+        ]
+    },
     python_requires='>=3.10',
     install_requires=["Django>=4.1"],
     classifiers=[

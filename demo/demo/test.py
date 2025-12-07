@@ -17,23 +17,12 @@ class TestLogLens(TestCase):
         """
         Tests if all protected views reject anonymous users.
         """
+
         url = reverse('log-lens:view')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 302, "View should redirect to login page.")
 
-        url = reverse('log-lens:request-logfile-paths')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 302, "View should redirect to login page.")
-
-        url = reverse('log-lens:request-logfile')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 302, "View should redirect to login page.")
-
-        url = reverse('log-lens:request-logfile-timestamp')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 302, "View should redirect to login page.")
-
-        url = reverse('log-lens:clear')
+        url = reverse('log-lens:log-file-api', args=["some/path"])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 302, "View should redirect to login page.")
 
@@ -41,54 +30,27 @@ class TestLogLens(TestCase):
         response = self.client.post(url)
         self.assertEqual(response.status_code, 302, "View should redirect to login page.")
 
-    def test_logfile_path_request(self):
-        url = reverse('log-lens:request-logfile-paths')
+    def test_log_post_and_get(self):
+        """
+        Tests posting log messages and retrieving them via the log file API.
+        """
+
+        LOG_FILE_API_NAME = 'log-lens:log-file-api'
+        PATH_TO_LOG_FILE = settings.LOGGING['handlers']['clients']['filename']
+        url = reverse(LOG_FILE_API_NAME, args=[PATH_TO_LOG_FILE])
         self.client.force_login(self.regular_user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 302, "View should reject non-superusers.")
 
-        self.client.force_login(self.superuser)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200, "View should return 200 OK.")
-
-        dict_response = response.json()
-        for val in dict_response.values():
-            self.assertTrue(os.path.exists(val), "All log files should exist.")
-
-        handler_names = ['client', 'django', 'requests', 'misc']
-        recognized_handlers = dict_response.keys()
-        for handler in handler_names:
-            self.assertTrue(handler in recognized_handlers, f"Handler {handler} should be recognized.")
-        assert len(handler_names) == len(recognized_handlers), "All handlers should be recognized."
-
-    def test_logfile_timestamp_request(self):
-        url = reverse('log-lens:request-logfile-timestamp')
-        self.client.force_login(self.regular_user)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 302, "View should reject non-superusers.")
-
-        self.client.force_login(self.superuser)
-        response = self.client.get(url + "?handler_name=client")
-        self.assertEqual(response.status_code, 200, "View should return 200 OK.")
-
-        dict_response = response.json()
-        for val in dict_response.values():
-            self.assertTrue(isinstance(float(val), float), "Can't convert timestamp to float.")
-
-    def test_logfile_request(self):
-        url = reverse('log-lens:request-logfile')
-        self.client.force_login(self.regular_user)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 302, "View should reject non-superusers.")
-
-        url = reverse("log-lens:post-log")
+        LOG_API_NAME = 'log-lens:log-api'
+        url = reverse(LOG_API_NAME)
         log_message = "This is a test log message."
         severity = "INFO"
         data = {"log_message": log_message, "severity": severity}
         response = self.client.post(url, data, content_type='application/json')
         self.assertEqual(response.status_code, 200, "View should return 200 OK.")
 
-        url = reverse('log-lens:request-logfile')
+        url = reverse(LOG_FILE_API_NAME, args=[PATH_TO_LOG_FILE])
         self.client.force_login(self.superuser)
         response = self.client.get(url + "?handler_name=client")
         content = response.content.decode('utf-8')
@@ -100,18 +62,23 @@ class TestLogLens(TestCase):
         """
         Reads log data associated with the given handler name.
         """
+
         with open(settings.LOGGING['handlers'][handler_name]['filename'], 'r') as f:
             return f.read()
 
     def test_log_levels(self):
-        logger = logging.getLogger("django.request")
+        """
+        Tests if log messages are recorded according to their severity levels.
+        """
+
+        logger = logging.getLogger("django")
         logger.debug("DEBUG")
         logger.info("INFO")
         logger.warning("WARNING")
         logger.error("ERROR")
         logger.critical("CRITICAL")
 
-        log_file_content = self.read_log_file("requests")
+        log_file_content = self.read_log_file("django")
 
         for msg in ["WARNING", "ERROR", "CRITICAL"]:
             self.assertTrue(msg in log_file_content, f"Log message {msg} should be found in file.")
@@ -124,6 +91,7 @@ class TestLogLens(TestCase):
         """
         Cleans up the log files after each test.
         """
+
         log_dir = settings.LOG_FOLDER
         for file in os.listdir(log_dir):
             with open(os.path.join(log_dir, file), 'w') as f:

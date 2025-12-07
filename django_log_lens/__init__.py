@@ -1,7 +1,12 @@
-from .views import file_handlers
-
 LEVEL_PREFIX = "[LVL:%(levelno)d]"
 LOG_FORMAT = LEVEL_PREFIX + "%(asctime)s %(levelname)s: %(message)s"
+
+__file_handlers = {
+    "logging.FileHandler",
+    "logging.handlers.RotatingFileHandler",
+    "logging.handlers.TimedRotatingFileHandler",
+    "logging.handlers.WatchedFileHandler",
+}
 
 
 def add_handler(handler_fqcn: str) -> None:
@@ -15,4 +20,8 @@ def add_handler(handler_fqcn: str) -> None:
     Example:
     >>> add_handler("myapp.handlers.MyFileHandler")
     """
-    file_handlers.add(handler_fqcn)
+    __file_handlers.add(handler_fqcn)
+
+
+def get_handlers() -> set:
+    return __file_handlers

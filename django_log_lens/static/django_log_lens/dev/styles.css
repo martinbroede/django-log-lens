@@ -1,0 +1,322 @@
+html[data-theme="dark"] {
+    --info-color: #8bedfd;
+    --debug-color: #50fa7c;
+    --warning-color: #feb86c;
+    --error-color: #ff5656;
+    --critical-color: #ff2728;
+    --string-color: #f080ff;
+    --border-header: 1px solid var(--pico-muted-border-color);
+    --pre-background-color: transparent;
+}
+
+html[data-theme="light"] {
+    --info-color: #0d8daa;
+    --debug-color: #078f29;
+    --warning-color: #be6200;
+    --error-color: #d61212;
+    --critical-color: #ff2929;
+    --string-color: #760399;
+    --border-header: 1px solid transparent;
+    --pre-background-color: white;
+}
+
+/* Alpine.js */
+[x-cloak] {
+    display: none !important;
+}
+
+*[data-theme="dark"] .search-highlight {
+    background-color: #ffff7727;
+    border-bottom: 1px solid #ffffff41;
+}
+
+*[data-theme="light"] .search-highlight {
+    background-color: #ffff0022;
+    border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.limit-height {
+    height: 3rem;
+}
+
+.hidden {
+    visibility: hidden !important;
+}
+
+/* Icons for theme toggle */
+[data-theme="dark"] .icon_moon,
+[data-theme="light"] .icon_sun {
+    display: none;
+}
+
+[data-theme="dark"] .icon_sun,
+[data-theme="light"] .icon_moon {
+    display: inline;
+}
+
+/* Pico.css */
+
+.pico-primary {
+    color: var(--pico-primary);
+}
+
+small {
+    position: relative;
+    left: 0.3rem;
+}
+
+/** Icon sizing */
+
+.icon {
+    position: relative;
+    top: -0.1rem;
+    width: 1.25rem;
+}
+
+.icon-btn-centered,
+.icon-btn {
+    position: relative;
+    top: -0.05rem;
+    width: 1.75rem;
+    margin: -8px;
+    padding-right: 0.5rem;
+}
+
+.icon-btn-centered {
+    padding-right: 0rem !important;
+    width: 1.5rem;
+}
+
+.icon-toast {
+    position: relative;
+    margin-right: 0.5rem;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+}
+
+.msg-toast-success {
+    border: 2px solid var(--pico-form-element-valid-border-color);
+    background-color: var(--pico-background-color);
+    box-shadow: 0rem 0rem 2rem 2rem #4b767011;
+    color: var(--pico-ins-color);
+}
+
+.msg-toast-error {
+    border: 2px solid var(--pico-form-element-invalid-border-color);
+    background-color: var(--pico-background-color);
+    box-shadow: 0rem 0rem 2rem 2rem #dc00000b;
+    color: var(--pico-del-color);
+}
+
+.msg-toast {
+    align-items: center;
+    border-radius: var(--pico-border-radius);
+    display: flex;
+    justify-content: center;
+    left: 50%;
+    top: 50%;
+    padding: 1rem;
+    position: fixed;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: 1000;
+}
+
+/** Miscellaneous */
+main {
+    min-height: calc(95vh - 6rem);
+}
+
+/* Adjusts dropdowns inside tables */
+td details summary {
+    margin-top: 1rem;
+    min-width: 8rem;
+}
+
+.no-border {
+    border: none !important;
+}
+
+* [role="link"] {
+    cursor: pointer;
+}
+
+.transparent-background {
+    background-color: transparent;
+}
+
+.spaced {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.hide {
+    display: none !important;
+}
+
+.right {
+    text-align: right;
+}
+
+#header-base {
+    box-shadow: var(--pico-box-shadow);
+    padding: 0.4rem 0;
+    border-bottom: var(--border-header);
+}
+
+#footer-base * {
+    margin-bottom: 0;
+    margin-top: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+#login-container {
+    max-width: 24rem;
+    margin: 0 auto;
+}
+
+/** LogLevel Coloring */
+
+.critical {
+    color: var(--critical-color);
+}
+
+.error {
+    color: var(--error-color);
+}
+
+.warning {
+    color: var(--warning-color);
+}
+
+.info {
+    color: var(--info-color);
+}
+
+.debug {
+    color: var(--debug-color);
+}
+
+.highlight {
+    color: var(--string-color);
+    cursor: pointer;
+}
+
+/** Log Nav*/
+
+#div-navigation-buttons {
+    padding-top: 0.5rem;
+}
+
+/** Log View */
+
+/* hide all scrollbars */
+
+&::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+* {
+    scrollbar-width: none; /* Firefox */
+}
+
+/* Links to vs code */
+.vscode-link {
+    border-radius: var(--pico-border-radius);
+    border: 1px solid var(--pico-secondary);
+    color: var(--pico-secondary);
+    cursor: pointer;
+    font-weight: normal;
+    margin-left: 0.5rem;
+    padding: 0 0.25rem;
+    position: relative;
+    text-decoration: none;
+    top: -2px;
+}
+
+#div-pre-wrapper {
+    grid-template-columns: 4rem auto;
+    display: grid;
+    max-height: calc(84vh - 4rem);
+    overflow: auto;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+}
+
+#log-container pre {
+    padding: 0 0.25rem;
+    white-space: pre;
+    background-color: var(--pre-background-color);
+}
+
+#pre-line-counter {
+    text-align: right;
+    user-select: none;
+    pointer-events: none;
+    border-right: 2px solid var(--pico-muted-border-color);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+#pre-log-content {
+    color: var(--pico-color);
+}
+
+/* Responsive visibility utilities */
+
+.show-xs,
+.show-sm,
+.show-md,
+.show-lg,
+.show-xl {
+    display: none;
+}
+
+@media (max-width: 575px) {
+    .hide-xs {
+        display: none;
+    }
+    .show-xs {
+        display: initial;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 767px) {
+    .hide-sm {
+        display: none;
+    }
+    .show-sm {
+        display: initial;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .hide-md {
+        display: none;
+    }
+    .show-md {
+        display: initial;
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+    .hide-lg {
+        display: none;
+    }
+    .show-lg {
+        display: initial;
+    }
+}
+
+@media (min-width: 1280px) {
+    .hide-xl {
+        display: none !important;
+    }
+    .show-xl {
+        display: initial !important;
+    }
+}

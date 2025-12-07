@@ -1,20 +1,22 @@
 from django.shortcuts import redirect
 from django.urls import path
 
-from .views import (clear_logfile, log_js_error, log_lens_view, login_view,
-                    logout_view, request_logfile, request_logfile_paths,
-                    request_logfile_timestamp)
+from .event_stream import sse_endpoint
+from .views import (api_logfile, log_client_msg, log_lens_view, login_view,
+                    logout_view)
 
 app_name = "log-lens"
 
 urlpatterns = [
     path('', lambda _: redirect('log-lens:view')),
-    path('request/paths', request_logfile_paths, name="request-logfile-paths"),
-    path('request/file', request_logfile, name="request-logfile"),
-    path('request/timestamp', request_logfile_timestamp, name="request-logfile-timestamp"),
-    path('post', log_js_error, name="post-log"),
-    path('clear/file', clear_logfile, name="clear"),
-    path('view', log_lens_view, name="view"),
-    path("login", login_view, name="login"),
-    path("logout", logout_view, name="logout"),
+
+    path('view/', log_lens_view, name="view"),
+
+    path("login/", login_view, name="login"),
+    path("logout/", logout_view, name="logout"),
+
+    path('api/sources/stream', sse_endpoint, name="stream-api"),
+    path('api/sources/files', lambda _: redirect('log-lens:view'), name="log-file-api-endpoint"),
+    path('api/sources/files/<path:path>/', api_logfile, name="log-file-api"),
+    path('api/logs/', log_client_msg, name="log-api"),
 ]

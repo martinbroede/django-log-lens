@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "checkJs": true,
-    "target": "ES2021"
-  }
+    "target": "es2024"
+  },
+  "exclude": ["django_log_lens/static/django_log_lens/main.generated.js"]
 }

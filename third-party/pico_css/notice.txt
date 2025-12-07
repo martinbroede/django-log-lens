@@ -1,0 +1,4 @@
+Pico CSS - Designed and built by Lucas Larroche with the help of contributors
+License: MIT
+https://opensource.org/license/MIT
+https://github.com/picocss/pico

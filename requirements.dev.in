@@ -1,12 +1,14 @@
 Django
 
 autopep8
+djlint
 flake8
 isort
 
 coverage
 coverage-badge
 
-setuptools
+setuptools~=80.9.0
+# todo: find out
 build
 twine

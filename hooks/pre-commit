@@ -4,20 +4,25 @@ warn() {
   echo -e "\033[0;33m$1\033[0m"
 }
 
-# pretty print code before committing
+flake8 .
+if [ $? -ne 0 ]; then
+  warn "flake8 found issues. Please fix the issues before committing."
+  exit 1
+fi
+
+
+djlint .
+if [ $? -ne 0 ]; then
+  warn "djlint found issues. Please fix them before committing."
+  exit 1
+fi
+
 isort .
 autopep8 --in-place --recursive .
 
 # Check for unstaged changes or untracked files
 if ! git diff --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
   warn "You have unstaged changes or untracked files. Please check if this is intended and amend your commit when indicated."
-fi
-
-flake8 .
-
-if [ $? -ne 0 ]; then
-  warn "Linter failed. Please fix the issues before committing."
-  exit 1
 fi
 
 # run coverage, coverage-badge and make sure the coverage.svg is up to date:
@@ -34,3 +39,11 @@ fi
 coverage-badge -o coverage.svg -f
 
 git add coverage.svg
+
+# concat and 'minify' the js and css files:
+
+./run/minify.sh -d "./django_log_lens/static/django_log_lens/dev" -f "alpinejs.v3.vendor.js main.js formatter.js util.js navigation.js" -o "./django_log_lens/static/django_log_lens/main.generated.js"
+git add django_log_lens/static/django_log_lens/main.generated.js
+
+./run/minify.sh -d "./django_log_lens/static/django_log_lens/dev" -f "pico.v2.vendor.css styles.css" -o "./django_log_lens/static/django_log_lens/styles.generated.css"
+git add django_log_lens/static/django_log_lens/styles.generated.css

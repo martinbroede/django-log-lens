@@ -1,0 +1,13 @@
+{% load log_lens_components %}
+
+<header class="spaced">
+  <b>Selected Source:</b>
+  <span>
+    <span :class="{ 'hidden': !ui.isLoading }" aria-busy="true"></span>
+    <code x-text="ui.selectedLogSource"></code>
+    <a x-show="ui.activeTab !== 'sources'"
+       role="link"
+       @click="ui.activeTab = 'sources'">Change</a>
+  </span>
+  <button class="show-xl" @click="ui.activeTab = 'blank'">{% icon_close %}</button>
+</header>

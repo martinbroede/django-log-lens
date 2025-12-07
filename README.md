@@ -17,7 +17,9 @@
 <br/>
 
 <p align="center">
-  <img width="500px" src="https://raw.githubusercontent.com/martinbroede/django-log-lens/main/django_log_lens/static/django_log_lens/logo.svg">
+  <!-- <img width="500px" src="https://raw.githubusercontent.com/martinbroede/django-log-lens/main/img/logo.svg"> -->
+  <!-- todo adjust when pushed to main -->
+  <img width="500px" src="img/logo.svg">
 </p>
 
 <br/>
