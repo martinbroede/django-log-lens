@@ -10,9 +10,7 @@ from django.views.decorators.http import require_http_methods
 from .filewatcher import FileWatcher
 from .views import MISCONFIGURATION, get_source_mappings
 
-msg_queue = queue.Queue(maxsize=100)
-
-subscribers = set()
+subscribers: set[queue.Queue] = set()
 sub_lock = threading.Lock()
 
 
@@ -20,7 +18,7 @@ def get_sse_subscription() -> queue.Queue:
     """
     Creates and returns a new queue for a Server-Sent Events (SSE) subscriber.
     """
-    q = queue.Queue(maxsize=10)
+    q = queue.Queue(maxsize=1)
     with sub_lock:
         subscribers.add(q)
     return q
@@ -53,37 +51,41 @@ def notify_sse_subscribers(msg: bytes):
 @require_http_methods(["GET"])
 @user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def sse_endpoint(_):
+    """
+    Django view that serves as the Server-Sent Events (SSE) endpoint
+    for streaming log file updates to authenticated superusers.
+    """
+    queue = get_sse_subscription()
     response = StreamingHttpResponse(
-        event_stream(),
+        stream_queue(queue),
         content_type="text/event-stream",
     )
     response["Cache-Control"] = "no-cache"
     return response
 
 
-def event_stream() -> Iterator[bytes]:
+def stream_queue(queue: queue.Queue) -> Iterator[bytes]:
     """
     Generator function that yields Server-Sent Events (SSE) messages from the queue.
     """
     while True:
-        data = msg_queue.get()
-        msg = f'data: {data}\n\n'
-        yield msg.encode("utf-8")
+        if queue not in subscribers:
+            break
+        try:
+            data = queue.get()
+            msg = f'data: {data}\n\n'
+            yield msg.encode("utf-8")
+        except GeneratorExit:
+            remove_sse_subscription(queue)
+            break
 
 
 def add_file_change_to_queue(file_path: str, action: Literal["append", "rotate"]):
     """
     Adds a message to the queue, ignoring if the queue is full.
     """
-    message_dict = {
-        "file_path": file_path,
-        "action": action,
-    }
-    msg = json.dumps(message_dict)
-    try:
-        msg_queue.put(msg, timeout=0.1)
-    except queue.Full:
-        pass
+    message = {"file_path": file_path, "action": action, }
+    notify_sse_subscribers(json.dumps(message).encode("utf-8"))
 
 
 def init_file_watchers():

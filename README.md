@@ -5,11 +5,10 @@
 [![Published](https://img.shields.io/badge/Published%20on-Django%20Packages-0c3c26)](https://djangopackages.org/packages/p/django-log-lens/)
 
 
-[![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml)
 [![Bandit](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml)
+[![Linter](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml)
 [![Tests](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 ![Coverage](https://raw.githubusercontent.com/martinbroede/django-log-lens/refs/heads/main/coverage.svg)
-[![Linter](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml)
 
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 [![Django](https://img.shields.io/badge/django-4.1%20%7C%204.2%20(LTS)%20%7C%205.0%20%7C%205.1%20%7C%205.2%20(LTS)-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
