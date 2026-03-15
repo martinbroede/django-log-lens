@@ -119,6 +119,42 @@ class TestLogLens(TestCase):
         for msg in ["DEBUG", "INFO"]:
             self.assertFalse(msg in log_file_content, f"Log message {msg} should not be found in file.")
 
+    def test_login_view(self):
+        """
+        Tests all branches of the login_view function.
+        """
+        url = reverse('log-lens:login')
+
+        # GET request - should render login page
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200, "GET request should return 200 OK.")
+        self.assertTemplateUsed(response, 'log-lens-login.html', "Should render login template.")
+        self.assertNotIn('error_message', response.context, "GET request should not have error message.")
+
+        # POST with valid superuser credentials - should redirect to view
+        response = self.client.post(url, {'username': 'admin', 'password': 'admin'})
+        self.assertEqual(response.status_code, 302, "Valid superuser should redirect.")
+        self.assertEqual(response.url, reverse('log-lens:view'), "Should redirect to log-lens:view.")  # type: ignore
+        # Verify user is logged in
+        self.assertTrue(response.wsgi_request.user.is_authenticated, "User should be authenticated.")
+        self.assertTrue(response.wsgi_request.user.is_superuser, "User should be superuser.")
+
+        # POST with valid non-superuser credentials - should render error message
+        response = self.client.post(url, {'username': 'user', 'password': 'user'})
+        self.assertEqual(response.status_code, 200, "Non-superuser should not redirect.")
+        self.assertTemplateUsed(response, 'log-lens-login.html', "Should render login template.")
+        self.assertIn('error_message', response.context, "Should have error message in context.")
+        self.assertIn('is not a superuser', response.context['error_message'],
+                      "Error message should indicate user is not superuser.")
+
+        # POST with invalid credentials - should render error message
+        response = self.client.post(url, {'username': 'invalid_user', 'password': 'invalid_pass'})
+        self.assertEqual(response.status_code, 200, "Invalid credentials should not redirect.")
+        self.assertTemplateUsed(response, 'log-lens-login.html', "Should render login template.")
+        self.assertIn('error_message', response.context, "Should have error message in context.")
+        self.assertIn('Invalid credentials', response.context['error_message'],
+                      "Error message should indicate invalid credentials.")
+
     @classmethod
     def tearDownClass(cls):
         """
