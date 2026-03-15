@@ -148,7 +148,9 @@ def clear_logfile(request) -> HttpResponse:
     handler_name = request.GET.get('handler_name', None)
     if handler_name is None:
         return BAD_REQUEST_HANDLER_NAME_NOT_PROVIDED
-    filename = settings.LOGGING['handlers'][handler_name]['filename']
+    filename = settings.LOGGING.get('handlers', {}).get(handler_name, {}).get('filename')
+    if filename is None:
+        return HttpResponseBadRequest("400 Bad Request: invalid handler name provided")
     try:
         with open(filename, 'w') as f:
             f.write("")

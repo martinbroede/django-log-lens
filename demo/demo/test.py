@@ -120,9 +120,6 @@ class TestLogLens(TestCase):
             self.assertFalse(msg in log_file_content, f"Log message {msg} should not be found in file.")
 
     def test_login_view(self):
-        """
-        Tests all branches of the login_view function.
-        """
         url = reverse('log-lens:login')
 
         # GET request - should render login page
@@ -156,9 +153,6 @@ class TestLogLens(TestCase):
                       "Error message should indicate invalid credentials.")
 
     def test_download_logfile(self):
-        """
-        Tests all branches of the download_logfile view.
-        """
         url = reverse('log-lens:download-logfile')
 
         # Anonymous user should be redirected to login
@@ -193,6 +187,42 @@ class TestLogLens(TestCase):
         self.assertEqual(response.status_code, 200, "Invalid handler should return 200.")
         self.assertIn("No logs available", response.content.decode('utf-8'),
                       "Should return 'No logs available' message.")
+
+    def test_clear_logfile(self):
+        url = reverse('log-lens:clear')
+
+        # Anonymous user should be redirected to login
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 302, "Anonymous user should be redirected.")
+
+        # Non-superuser should be redirected to login
+        self.client.force_login(self.regular_user)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 302, "Non-superuser should be redirected.")
+
+        # Login as superuser for remaining tests
+        self.client.force_login(self.superuser)
+
+        # No handler_name provided should return 400 Bad Request
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 400, "Missing handler_name should return 400.")
+        self.assertIn("no handler name provided", response.content.decode('utf-8'),
+                      "Error message should mention missing handler name.")
+
+        # Valid handler_name should clear the file
+        response = self.client.delete(url + "?handler_name=client")
+        self.assertEqual(response.status_code, 200, "Valid handler should return 200.")
+        self.assertIn("cleared", response.content.decode('utf-8'),
+                      "Response should contain 'cleared' message.")
+        # Verify file is actually cleared
+        logfile_content = self.read_log_file('client')
+        self.assertEqual(logfile_content, "", "Log file should be empty after clearing.")
+
+        # Invalid handler_name should return "No logs available"
+        response = self.client.delete(url + "?handler_name=nonexistent")
+        self.assertEqual(response.status_code, 400, "Invalid handler should return 400.")
+        self.assertIn("invalid handler name", response.content.decode('utf-8'),
+                      "Error message should mention invalid handler name.")
 
     @classmethod
     def tearDownClass(cls):
