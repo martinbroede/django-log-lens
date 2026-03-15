@@ -339,6 +339,8 @@ function renderFilePathTable(data) {
     const tdPath = document.createElement("td");
     const tdLoad = document.createElement("td");
     const tdClear = document.createElement("td");
+    const tdDownload = document.createElement("td");
+    const aDownload = document.createElement("a");
     tdLoad.innerHTML = "&nbsp;&nbsp;&rarr;&nbsp;&nbsp;";
     tdLoad.onclick = () => {
       const tempProp = prop;
@@ -354,10 +356,15 @@ function renderFilePathTable(data) {
       const tempProp = prop;
       promptClearLogFile(tempProp);
     };
+    // @ts-ignore
+    aDownload.href = downloadLogfileURL + prop;
+    aDownload.innerHTML = "&nbsp;&nbsp;&nbsp;&darr;&nbsp;&nbsp;&nbsp;";
+    tdDownload.appendChild(aDownload);
     tr.appendChild(tdHandler);
     tr.appendChild(tdPath);
     tr.appendChild(tdLoad);
     tr.appendChild(tdClear);
+    tr.appendChild(tdDownload);
     const rows = tableFilePaths.getElementsByTagName("tr");
     for (let i = 1; i < rows.length; i++) {
       if (rows[i].getElementsByTagName("td")[0].innerText === prop) {
