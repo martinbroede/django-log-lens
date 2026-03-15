@@ -4,6 +4,17 @@ warn() {
   echo -e "\033[0;33m$1\033[0m"
 }
 
+activate_venv() {
+  if [ -d ".venv" ]; then
+    source .venv/bin/activate
+  else
+    warn "Virtual environment not found. Please create a virtual environment in the project root directory using 'python -m venv .venv' and install the required dependencies."
+    exit 1
+  fi
+}
+
+activate_venv
+
 flake8 .
 if [ $? -ne 0 ]; then
   warn "flake8 found issues. Please fix the issues before committing."
