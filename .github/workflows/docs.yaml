@@ -1,6 +1,8 @@
+name: Docs
+
 on:
   push:
-    branches: ["dev/release/1.0.1"]
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -8,7 +10,7 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,7 +20,7 @@ jobs:
         with:
           python-version: "3.13"
 
-      - run: pip install --upgrade setuptools=~81.0.0 # fix for missing module pkg_resources
+      - run: pip install --upgrade setuptools~=81.0.0 # fix for missing module pkg_resources
       - run: pip install Django
       - run: pip install coverage coverage-badge
 
@@ -34,11 +36,6 @@ jobs:
         with:
           path: site
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-
-    steps:
-      - uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
