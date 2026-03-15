@@ -1,0 +1,31 @@
+[tool.djlint]
+custom_html = "c-\\w+"
+format_attribute_template_tags = true
+format_css = true
+format_js = true
+ignore = "H006"
+indent = 2
+max_attribute_length = 1
+max_blank_lines = 1
+max_line_length = 120
+extend_exclude = "htmlcov"
+
+[tool.djlint.css]
+indent_size = 2
+
+[tool.djlint.js]
+indent_size = 2
+
+[tool.isort]
+default_section = "THIRDPARTY"
+known_django = "django"
+sections = "FUTURE,STDLIB,DJANGO,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+skip = ".git, .github, .venv, migrations, __pycache__"
+
+[tool.flake8]
+exclude = ".git, .github, .venv, migrations, __pycache__"
+max_line_length = 120
+select = "C,E,F,W,B,B950"
+
+[tool.autopep8]
+max_line_length = 120
