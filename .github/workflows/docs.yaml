@@ -1,0 +1,41 @@
+name: Docs
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - run: pip install --upgrade setuptools~=81.0.0 # fix for missing module pkg_resources
+      - run: pip install Django
+      - run: pip install coverage coverage-badge
+
+      - run: coverage run demo/manage.py test demo.test
+      - run: coverage html
+      - run: coverage-badge -o htmlcov/badge.svg
+
+      - run: |
+          mkdir -p site/coverage
+          cp -r htmlcov/* site/coverage/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
