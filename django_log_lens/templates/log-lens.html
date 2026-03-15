@@ -82,6 +82,7 @@
             <th>Path</th>
             <th>Load</th>
             <th>Clear</th>
+            <th>Download</th>
           </tr>
         </table>
 
@@ -119,6 +120,7 @@
       const requestLogFilePathsURL = "{% url 'log-lens:request-logfile-paths' %}";
       const requestLogfileTimestampURL = "{% url 'log-lens:request-logfile-timestamp' %}?handler_name=";
       const requestLogfileURL = '{% url "log-lens:request-logfile" %}?handler_name=';
+      const downloadLogfileURL = '{% url "log-lens:download-logfile" %}?handler_name=';
     </script>
     <script src="{% static 'django_log_lens/script.js' %}"></script>
   </body>

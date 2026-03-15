@@ -119,6 +119,111 @@ class TestLogLens(TestCase):
         for msg in ["DEBUG", "INFO"]:
             self.assertFalse(msg in log_file_content, f"Log message {msg} should not be found in file.")
 
+    def test_login_view(self):
+        url = reverse('log-lens:login')
+
+        # GET request - should render login page
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200, "GET request should return 200 OK.")
+        self.assertTemplateUsed(response, 'log-lens-login.html', "Should render login template.")
+        self.assertNotIn('error_message', response.context, "GET request should not have error message.")
+
+        # POST with valid superuser credentials - should redirect to view
+        response = self.client.post(url, {'username': 'admin', 'password': 'admin'})
+        self.assertEqual(response.status_code, 302, "Valid superuser should redirect.")
+        self.assertEqual(response.url, reverse('log-lens:view'), "Should redirect to log-lens:view.")  # type: ignore
+        # Verify user is logged in
+        self.assertTrue(response.wsgi_request.user.is_authenticated, "User should be authenticated.")
+        self.assertTrue(response.wsgi_request.user.is_superuser, "User should be superuser.")
+
+        # POST with valid non-superuser credentials - should render error message
+        response = self.client.post(url, {'username': 'user', 'password': 'user'})
+        self.assertEqual(response.status_code, 200, "Non-superuser should not redirect.")
+        self.assertTemplateUsed(response, 'log-lens-login.html', "Should render login template.")
+        self.assertIn('error_message', response.context, "Should have error message in context.")
+        self.assertIn('is not a superuser', response.context['error_message'],
+                      "Error message should indicate user is not superuser.")
+
+        # POST with invalid credentials - should render error message
+        response = self.client.post(url, {'username': 'invalid_user', 'password': 'invalid_pass'})
+        self.assertEqual(response.status_code, 200, "Invalid credentials should not redirect.")
+        self.assertTemplateUsed(response, 'log-lens-login.html', "Should render login template.")
+        self.assertIn('error_message', response.context, "Should have error message in context.")
+        self.assertIn('Invalid credentials', response.context['error_message'],
+                      "Error message should indicate invalid credentials.")
+
+    def test_download_logfile(self):
+        url = reverse('log-lens:download-logfile')
+
+        # Anonymous user should be redirected to login
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302, "Anonymous user should be redirected.")
+
+        # Non-superuser should be redirected to login
+        self.client.force_login(self.regular_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302, "Non-superuser should be redirected.")
+
+        # Login as superuser for remaining tests
+        self.client.force_login(self.superuser)
+
+        # No handler_name provided should return 400 Bad Request
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400, "Missing handler_name should return 400.")
+        self.assertIn("no handler name provided", response.content.decode('utf-8'),
+                      "Error message should mention missing handler name.")
+
+        # Valid handler_name should return file content
+        response = self.client.get(url + "?handler_name=client")
+        content_disposition = response['Content-Disposition']
+        self.assertEqual(response.status_code, 200, "Valid handler should return 200.")
+        self.assertEqual(response['Content-Type'], 'text/plain', "Content-Type should be text/plain.")
+        self.assertIn('attachment', response['Content-Disposition'], "Response should be downloadable.")
+        self.assertTrue(content_disposition.index('filename=') != -1, "Content-Disposition should contain filename.")
+        self.assertTrue(content_disposition.index('client.log') != -1, "Content-Disposition should contain client.log.")
+
+        # Invalid handler_name should return "No logs available"
+        response = self.client.get(url + "?handler_name=nonexistent")
+        self.assertEqual(response.status_code, 200, "Invalid handler should return 200.")
+        self.assertIn("No logs available", response.content.decode('utf-8'),
+                      "Should return 'No logs available' message.")
+
+    def test_clear_logfile(self):
+        url = reverse('log-lens:clear')
+
+        # Anonymous user should be redirected to login
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 302, "Anonymous user should be redirected.")
+
+        # Non-superuser should be redirected to login
+        self.client.force_login(self.regular_user)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 302, "Non-superuser should be redirected.")
+
+        # Login as superuser for remaining tests
+        self.client.force_login(self.superuser)
+
+        # No handler_name provided should return 400 Bad Request
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 400, "Missing handler_name should return 400.")
+        self.assertIn("no handler name provided", response.content.decode('utf-8'),
+                      "Error message should mention missing handler name.")
+
+        # Valid handler_name should clear the file
+        response = self.client.delete(url + "?handler_name=client")
+        self.assertEqual(response.status_code, 200, "Valid handler should return 200.")
+        self.assertIn("cleared", response.content.decode('utf-8'),
+                      "Response should contain 'cleared' message.")
+        # Verify file is actually cleared
+        logfile_content = self.read_log_file('client')
+        self.assertEqual(logfile_content, "", "Log file should be empty after clearing.")
+
+        # Invalid handler_name should return "No logs available"
+        response = self.client.delete(url + "?handler_name=nonexistent")
+        self.assertEqual(response.status_code, 400, "Invalid handler should return 400.")
+        self.assertIn("invalid handler name", response.content.decode('utf-8'),
+                      "Error message should mention invalid handler name.")
+
     @classmethod
     def tearDownClass(cls):
         """

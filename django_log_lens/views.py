@@ -76,6 +76,27 @@ def log_js_error(request):
 
 @require_http_methods(["GET"])
 @user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
+def download_logfile(request) -> HttpResponse:
+    """
+    Allows downloading the log file associated with the handler_name
+    defined in the query string.
+    A logged in superuser is required.
+    """
+    handler_name = request.GET.get('handler_name', None)
+    if handler_name is None:
+        return BAD_REQUEST_HANDLER_NAME_NOT_PROVIDED
+    try:
+        filename = settings.LOGGING['handlers'][handler_name]['filename']
+        with open(filename, 'r') as f:
+            response = HttpResponse(f.read(), content_type='text/plain')
+            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(filename)}"'
+            return response
+    except (FileNotFoundError, KeyError):
+        return HttpResponse("No logs available")
+
+
+@require_http_methods(["GET"])
+@user_passes_test(lambda user: user.is_superuser, login_url='log-lens:login')
 def request_logfile(request) -> HttpResponse:
     """
     Returns the contents of the log file associated with the handler_name
@@ -127,7 +148,9 @@ def clear_logfile(request) -> HttpResponse:
     handler_name = request.GET.get('handler_name', None)
     if handler_name is None:
         return BAD_REQUEST_HANDLER_NAME_NOT_PROVIDED
-    filename = settings.LOGGING['handlers'][handler_name]['filename']
+    filename = settings.LOGGING.get('handlers', {}).get(handler_name, {}).get('filename')
+    if filename is None:
+        return HttpResponseBadRequest("400 Bad Request: invalid handler name provided")
     try:
         with open(filename, 'w') as f:
             f.write("")

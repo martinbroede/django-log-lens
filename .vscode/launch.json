@@ -6,7 +6,7 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/demo/manage.py",
-      "args": ["runserver", "localhost:8765"],
+      "args": ["runserver", "localhost:8000"],
       "django": true,
       "autoStartBrowser": false
     }
