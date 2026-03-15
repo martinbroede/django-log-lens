@@ -25,20 +25,13 @@ if ! git diff --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; t
   warn "You have unstaged changes or untracked files. Please check if this is intended and amend your commit when indicated."
 fi
 
-# run coverage, coverage-badge and make sure the coverage.svg is up to date:
-
-rm -f .coverage
-
-coverage run demo/manage.py test demo.test
+# Run tests
+python demo/manage.py test demo.test
 
 if [ $? -ne 0 ]; then
   warn "Tests failed. Please fix the issues before committing."
   exit 1
 fi
-
-coverage-badge -o coverage.svg -f
-
-git add coverage.svg
 
 # concat and 'minify' the js and css files:
 
