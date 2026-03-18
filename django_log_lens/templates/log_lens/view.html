@@ -98,7 +98,7 @@
                 <td class="spaced">
                   <span>
                     <a role="link"
-                       @click="ui.isInitialLoad = false; selectSource('{{ source }}');">
+                        @click="selectSource('{{ source }}');">
                       <code class="transparent-background">{{ source }}</code>
                     </a>
                   </span>
@@ -343,9 +343,13 @@
     </dialog>
 
     <div class="msg-toast-stack" x-show="$store.ui.toast.items.length > 0">
-      <template x-for="(t, i) in $store.ui.toast.items" :key="i">
+      <template x-for="t in $store.ui.toast.items" :key="t.id">
         <div class="msg-toast"
-             :class="{ 'msg-toast-success': t.type === 'success', 'msg-toast-error': t.type === 'error' }">
+             :class="{
+               'msg-toast-success': t.type === 'success',
+               'msg-toast-error': t.type === 'error',
+               'msg-toast-leaving': t.isLeaving
+             }">
           <div x-show="t.type === 'error'">{% icon_error class="icon-toast" %}</div>
           <div x-show="t.type === 'success'">{% icon_check_circle class="icon-toast" %}</div>
           <span x-text="t.message"></span>

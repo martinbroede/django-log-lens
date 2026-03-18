@@ -117,16 +117,39 @@ small {
     border-radius: var(--pico-border-radius);
     display: flex;
     justify-content: center;
+    margin-top: 0;
+    max-height: 8rem;
+    opacity: 1;
+    overflow: hidden;
     padding: 1rem;
+    transform: translateY(0) scale(1);
+    transition: opacity 220ms ease, transform 220ms ease, max-height 280ms ease, padding-top 280ms ease,
+        padding-bottom 280ms ease, margin-top 280ms ease, border-width 220ms ease;
+    will-change: opacity, transform, max-height;
     width: max-content;
     max-width: min(90vw, 42rem);
+}
+
+.msg-toast + .msg-toast {
+    margin-top: 0.75rem;
+}
+
+.msg-toast-leaving {
+    border-width: 0;
+    margin-top: 0 !important;
+    max-height: 0;
+    opacity: 0;
+    padding-bottom: 0;
+    padding-top: 0;
+    transform: translateY(-0.35rem) scale(0.985);
 }
 
 .msg-toast-stack {
     align-items: center;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    height: min(70vh, 26rem);
+    justify-content: center;
     left: 50%;
     pointer-events: none;
     position: fixed;

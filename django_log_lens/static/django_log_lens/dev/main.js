@@ -23,6 +23,8 @@ const INITIAL_LOG_SOURCE = { content: "", lines: "" };
 
 const NONE_SELECTED = "NONE SELECTED";
 
+const TOAST_EXIT_ANIMATION_MS = 280;
+
 let logRenderer = null;
 
 /**
@@ -48,7 +50,7 @@ const INITIAL_STATE = {
   currentErrorIndex: -1,
   errorCount: 0,
   fullWidth: localStorage.getItem("fullWidth") === "true",
-  isInitialLoad: true,
+  hasLoadedLogSourceOnce: false,
   isLoading: false,
   limitLinesTo: localStorage.getItem("limitLinesTo") || 1000,
   logSource: INITIAL_LOG_SOURCE,
@@ -61,8 +63,22 @@ const INITIAL_STATE = {
   toast: {
     items: [],
     push(message, timeout = 3000, type = "success") {
-      this.items.push({ message, type });
-      setTimeout(() => this.items.shift(), timeout);
+      const id =
+        globalThis.crypto && typeof globalThis.crypto.randomUUID === "function"
+          ? globalThis.crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      this.items.push({ id, message, type, isLeaving: false });
+      setTimeout(() => this.dismiss(id), timeout);
+    },
+    dismiss(id) {
+      const toast = this.items.find((item) => item.id === id);
+      if (!toast || toast.isLeaving) {
+        return;
+      }
+      toast.isLeaving = true;
+      setTimeout(() => {
+        this.items = this.items.filter((item) => item.id !== id);
+      }, TOAST_EXIT_ANIMATION_MS);
     },
   },
 };
@@ -73,7 +89,7 @@ const INITIAL_STATE = {
  * @param {string} logSource
  */
 function selectSource(logSource) {
-  if (logSource == Alpine.store("ui").selectedLogSource) {
+  if (logSource === Alpine.store("ui").selectedLogSource) {
     Alpine.store("ui").activeTab = "nav";
   } else {
     Alpine.store("ui").selectedLogSource = logSource;
@@ -175,8 +191,8 @@ function markAsError(content) {
  * Sync the selected log source in the Alpine.js store with the backend
  * when it changes.
  */
-async function syncSelectedLogSource() {
-  Alpine.effect(async () => {
+function syncSelectedLogSource() {
+  Alpine.effect(() => {
     fetchLogSourceContent();
     addOptionalWordBreaks();
   });
@@ -184,10 +200,10 @@ async function syncSelectedLogSource() {
 
 /**
  * Fetch the log source content from the backend API
- * @param {boolean} forceReload Wether to force reload the log source content -shows a toast on success.
+ * @param {boolean} showRefreshToast Whether to show a success toast after a successful refresh.
  * @returns {Promise<void>}
  */
-async function fetchLogSourceContent(forceReload = false) {
+async function fetchLogSourceContent(showRefreshToast = false) {
   const sourceName = Alpine.store("ui").selectedLogSource;
   if (!sourceName || sourceName === NONE_SELECTED) {
     return;
@@ -198,42 +214,57 @@ async function fetchLogSourceContent(forceReload = false) {
   const logData = await getLogFile(sourceName);
 
   if (!logData.success) {
-    const err = markAsError(logData.content);
-    onAfterFetchLogSourceContent(err);
+    updateLogSourceViewState({
+      content: markAsError(logData.content),
+      shouldSwitchToNav: true,
+    });
     if (logData.content === MSG_NO_LOG_DATA) {
       toast(MSG_NO_LOG_DATA, 3000, "error");
     } else if (logData.content === GENERIC_ERROR_MESSAGE) {
       toast(GENERIC_ERROR_MESSAGE_SHORT, 3000, "error");
     }
     return;
-  } else {
-    const limitLinesTo = Alpine.store("ui").limitLinesTo;
-    logRenderer = new LogRenderer(logData.content, limitLinesTo);
-    logRenderer.renderLogContent();
-    const content = logRenderer.getRenderedLogContent();
-    const lineNumbers = logRenderer.generateLineNumbers();
-    onAfterFetchLogSourceContent(content, lineNumbers, logRenderer.errorCounter, forceReload);
-    if (forceReload) {
-      toast(REFRESH_SUCCESS_MESSAGE, 3000, "success");
-    }
+  }
+
+  const limitLinesTo = Alpine.store("ui").limitLinesTo;
+  logRenderer = new LogRenderer(logData.content, limitLinesTo);
+  logRenderer.renderLogContent();
+  updateLogSourceViewState({
+    content: logRenderer.getRenderedLogContent(),
+    lines: logRenderer.generateLineNumbers(),
+    errorCount: logRenderer.errorCounter,
+    shouldSwitchToNav: !showRefreshToast,
+  });
+  if (showRefreshToast) {
+    toast(REFRESH_SUCCESS_MESSAGE, 3000, "success");
   }
 }
 
 /**
- *
- * @param {string} content
- * @param {*} lines
- * @param {*} errorCount
- * @param {*} forceReload
+ * Apply fetched source data to UI state and optionally switch to the navigation tab.
+ * @param {{
+ *   content: string,
+ *   lines?: string,
+ *   errorCount?: number,
+ *   shouldSwitchToNav?: boolean,
+ * }} params
  */
-function onAfterFetchLogSourceContent(content, lines = "", errorCount = 0, forceReload = false) {
-  Alpine.store("ui").logSource = { content, lines };
-  Alpine.store("ui").isLoading = false;
-  Alpine.store("ui").errorCount = errorCount;
-  if (Alpine.store("ui").isInitialLoad) {
-    Alpine.store("ui").isInitialLoad = false;
-  } else if (!forceReload) {
-    Alpine.store("ui").activeTab = "nav";
+function updateLogSourceViewState({
+  content,
+  lines = "",
+  errorCount = 0,
+  shouldSwitchToNav = false,
+}) {
+  const ui = Alpine.store("ui");
+  const isFirstLoadedSource = !ui.hasLoadedLogSourceOnce;
+
+  ui.logSource = { content, lines };
+  ui.isLoading = false;
+  ui.errorCount = errorCount;
+  ui.hasLoadedLogSourceOnce = true;
+
+  if (!isFirstLoadedSource && shouldSwitchToNav) {
+    ui.activeTab = "nav";
   }
 }
 
@@ -351,7 +382,12 @@ function setUpSSE() {
           const content = logRenderer.getRenderedLogContent();
           const lineNumbers = logRenderer.generateLineNumbers();
           invalidateSearchResults();
-          onAfterFetchLogSourceContent(content, lineNumbers, logRenderer.errorCounter, true);
+          updateLogSourceViewState({
+            content,
+            lines: lineNumbers,
+            errorCount: logRenderer.errorCounter,
+            shouldSwitchToNav: false,
+          });
         } else {
           evtSource.close();
           logger.info("SSE connection closed due to failed log fetch after append.");
@@ -370,21 +406,41 @@ function setUpSSE() {
  */
 function handleAutoRefreshToggle() {
   let evtSource = null;
+  let isFirstEffectRun = true;
+  let previousAutoRefreshValue = Alpine.store("ui").autoRefresh;
+
   Alpine.effect(() => {
     const autoRefresh = Alpine.store("ui").autoRefresh;
+
+    if (isFirstEffectRun) {
+      isFirstEffectRun = false;
+      previousAutoRefreshValue = autoRefresh;
+      if (autoRefresh) {
+        evtSource = setUpSSE();
+        fetchLogSourceContent(false);
+      }
+      return;
+    }
+
+    if (autoRefresh === previousAutoRefreshValue) {
+      return;
+    }
+
     if (autoRefresh) {
       evtSource = setUpSSE();
       fetchLogSourceContent(true);
-      toast("Auto-Refresh Enabled")
+      toast("Auto-Refresh Enabled");
       logger.info("Auto-refresh enabled, SSE connection established.");
     } else {
-      toast("Auto-Refresh Paused")
+      toast("Auto-Refresh Paused");
       if (evtSource) {
         evtSource.close();
         evtSource = null;
         logger.debug("SSE connection closed.");
       }
     }
+
+    previousAutoRefreshValue = autoRefresh;
   });
 }
 
