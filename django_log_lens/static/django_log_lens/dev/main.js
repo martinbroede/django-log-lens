@@ -60,7 +60,7 @@ const INITIAL_STATE = {
   pathSplitter: localStorage.getItem("pathSplitter") || "",
   toast: {
     items: [],
-    push(message, timeout = 2000, type = "success") {
+    push(message, timeout = 3000, type = "success") {
       this.items.push({ message, type });
       setTimeout(() => this.items.shift(), timeout);
     },
@@ -214,7 +214,7 @@ async function fetchLogSourceContent(forceReload = false) {
     const lineNumbers = logRenderer.generateLineNumbers();
     onAfterFetchLogSourceContent(content, lineNumbers, logRenderer.errorCounter, forceReload);
     if (forceReload) {
-      toast(REFRESH_SUCCESS_MESSAGE, 1000, "success");
+      toast(REFRESH_SUCCESS_MESSAGE, 3000, "success");
     }
   }
 }
@@ -299,7 +299,7 @@ function clearLogFile(fileLocation) {
           Alpine.store("ui").selectedLogSource = NONE_SELECTED;
         }
         logger.debug("Log source cleared successfully.");
-        toast("Log Source Cleared", 2000, "success");
+        toast("Log Source Cleared", 3000, "success");
       } else {
         toast(GENERIC_ERROR_MESSAGE_SHORT, 3000, "error");
         logger.error(`Failed to clear log source: ${response.status} - ${response.statusText}`);
@@ -317,7 +317,7 @@ function clearLogFile(fileLocation) {
  * @param {number} timeout Duration in milliseconds before the toast disappears.
  * @param {'success' | 'error' } type The type of toast ("success" or "error").
  */
-function toast(message, timeout = 2000, type = "success") {
+function toast(message, timeout = 3000, type = "success") {
   Alpine.store("ui").toast.push(message, timeout, type);
 }
 
@@ -375,10 +375,10 @@ function handleAutoRefreshToggle() {
     if (autoRefresh) {
       evtSource = setUpSSE();
       fetchLogSourceContent(true);
-      toast("Auto-Refresh Enabled", 1000, "success");
+      toast("Auto-Refresh Enabled")
       logger.info("Auto-refresh enabled, SSE connection established.");
     } else {
-      toast("Auto-Refresh Paused", 1000, "success");
+      toast("Auto-Refresh Paused")
       if (evtSource) {
         evtSource.close();
         evtSource = null;

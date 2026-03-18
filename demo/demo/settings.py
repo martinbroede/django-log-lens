@@ -132,7 +132,7 @@ LOGGING = {
             "class": "logging.handlers.RotatingFileHandler",
             "filename": str(LOG_FOLDER / "resources.log"),
             "formatter": "default",
-            "maxBytes": 2000,
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
             "backupCount": 9,
         },
         "console": {

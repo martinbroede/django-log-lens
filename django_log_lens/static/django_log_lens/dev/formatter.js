@@ -123,38 +123,63 @@ class LogRenderer {
   }
 
   /**
-   * Applies colorization based on log level markers `[LVL:XX]`.
+   * Applies colorization based on log level markers (`[LVL:XX]` or text prefixes like `ERROR`).
    * @param {string} line - The log line
    * @returns {string} The colorized HTML line
    */
   colorizeLogLevels(line) {
-    const match = line.match(/\[LVL:(\d+)\]/);
+    const numericMatch = line.match(/\[LVL:(\d+)\]/i);
+    const textPrefixMatch = line.match(
+      /^\s*(?:\[(critical|fatal|error|warning|warn|info|debug|trace)\]|(critical|fatal|error|warning|warn|info|debug|trace))(?=\s|:|-|\]|$)\s*[:\-]?\s*/i
+    );
     const lineId = this._generateRandomId();
     let contentId = "";
-    if (!match) return `<span log-line id="${lineId}">${line}</span>`;
-
-    const [fullMatch, levelStr] = match;
-    const level = parseInt(levelStr, 10);
-
     let spanClass = "";
+    let stripPrefix = "";
 
-    if (level >= 50) {
-      spanClass = "critical";
-      contentId = `error-${this._generateRandomId()}`;
-      this.errorCounter++;
-    } else if (level >= 40) {
-      spanClass = "error";
-      contentId = `error-${this._generateRandomId()}`;
-      this.errorCounter++;
-    } else if (level >= 30) {
-      spanClass = "warning";
-    } else if (level >= 20) {
-      spanClass = "info";
-    } else if (level >= 10) {
-      spanClass = "debug";
+    if (numericMatch) {
+      const [fullMatch, levelStr] = numericMatch;
+      const level = parseInt(levelStr, 10);
+      stripPrefix = fullMatch;
+
+      if (level >= 50) {
+        spanClass = "critical";
+        contentId = `error-${this._generateRandomId()}`;
+        this.errorCounter++;
+      } else if (level >= 40) {
+        spanClass = "error";
+        contentId = `error-${this._generateRandomId()}`;
+        this.errorCounter++;
+      } else if (level >= 30) {
+        spanClass = "warning";
+      } else if (level >= 20) {
+        spanClass = "info";
+      } else if (level >= 10) {
+        spanClass = "debug";
+      }
+    } else if (textPrefixMatch) {
+      const levelText = (textPrefixMatch[1] || textPrefixMatch[2]).toLowerCase();
+
+      if (levelText === "critical" || levelText === "fatal") {
+        spanClass = "critical";
+        contentId = `error-${this._generateRandomId()}`;
+        this.errorCounter++;
+      } else if (levelText === "error") {
+        spanClass = "error";
+        contentId = `error-${this._generateRandomId()}`;
+        this.errorCounter++;
+      } else if (levelText === "warning" || levelText === "warn") {
+        spanClass = "warning";
+      } else if (levelText === "info") {
+        spanClass = "info";
+      } else if (levelText === "debug" || levelText === "trace") {
+        spanClass = "debug";
+      }
+    } else {
+      return `<span log-line id="${lineId}">${line}</span>`;
     }
 
-    line = `<span log-line id="${lineId}">${line.replace(fullMatch, "")}</span>`;
+    line = `<span log-line id="${lineId}">${line.replace(stripPrefix, "")}</span>`;
 
     return `</span><span id="${contentId}" class="${spanClass}">${line}`;
   }
