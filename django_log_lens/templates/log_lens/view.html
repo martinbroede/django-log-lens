@@ -342,14 +342,16 @@
       </article>
     </dialog>
 
-    <template x-for="(t, i) in $store.ui.toast.items" :key="i">
-      <div class="msg-toast"
-           :class="{ 'msg-toast-success': t.type === 'success', 'msg-toast-error': t.type === 'error' }">
-        <div x-show="t.type === 'error'">{% icon_error class="icon-toast" %}</div>
-        <div x-show="t.type === 'success'">{% icon_check_circle class="icon-toast" %}</div>
-        <span x-text="t.message"></span>
-      </div>
-    </template>
+    <div class="msg-toast-stack" x-show="$store.ui.toast.items.length > 0">
+      <template x-for="(t, i) in $store.ui.toast.items" :key="i">
+        <div class="msg-toast"
+             :class="{ 'msg-toast-success': t.type === 'success', 'msg-toast-error': t.type === 'error' }">
+          <div x-show="t.type === 'error'">{% icon_error class="icon-toast" %}</div>
+          <div x-show="t.type === 'success'">{% icon_check_circle class="icon-toast" %}</div>
+          <span x-text="t.message"></span>
+        </div>
+      </template>
+    </div>
   </main>
 
 {% endblock main %}
