@@ -62,13 +62,28 @@ const INITIAL_STATE = {
   pathSplitter: localStorage.getItem("pathSplitter") || "",
   toast: {
     items: [],
-    push(message, timeout = 3000, type = "success") {
+    push(message, type, placement, timeout) {
+      if (placement === "bottom") {
+        const existing = this.items.find((item) => item.placement === "bottom");
+        if (existing) {
+          existing.message = message;
+          existing.type = type;
+          existing.isLeaving = false;
+          if (existing.dismissTimer) {
+            clearTimeout(existing.dismissTimer);
+          }
+          existing.dismissTimer = setTimeout(() => this.dismiss(existing.id), timeout);
+          return;
+        }
+      }
+
       const id =
         globalThis.crypto && typeof globalThis.crypto.randomUUID === "function"
           ? globalThis.crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      this.items.push({ id, message, type, isLeaving: false });
-      setTimeout(() => this.dismiss(id), timeout);
+      const toastItem = { id, message, type, placement, isLeaving: false, dismissTimer: null };
+      this.items.push(toastItem);
+      toastItem.dismissTimer = setTimeout(() => this.dismiss(id), timeout);
     },
     dismiss(id) {
       const toast = this.items.find((item) => item.id === id);
@@ -76,6 +91,10 @@ const INITIAL_STATE = {
         return;
       }
       toast.isLeaving = true;
+      if (toast.dismissTimer) {
+        clearTimeout(toast.dismissTimer);
+        toast.dismissTimer = null;
+      }
       setTimeout(() => {
         this.items = this.items.filter((item) => item.id !== id);
       }, TOAST_EXIT_ANIMATION_MS);
@@ -170,10 +189,15 @@ function setUp() {
 function pauseAutoRefresh() {
   if (Alpine.store("ui").autoRefresh) {
     Alpine.store("ui").autoRefresh = false;
-    toast("Auto-Refresh Paused", 1000);
+    toast("Auto-Refresh Paused");
   }
 }
 
+/**
+ * Clear the current search results in the Alpine.js store, typically called
+ * when the log content is refreshed or a new log source is selected to ensure
+ * that search results are relevant to the currently displayed log content.
+ */
 function invalidateSearchResults() {
   Alpine.store("ui").searchResults.length = 0;
 }
@@ -219,9 +243,9 @@ async function fetchLogSourceContent(showRefreshToast = false) {
       shouldSwitchToNav: true,
     });
     if (logData.content === MSG_NO_LOG_DATA) {
-      toast(MSG_NO_LOG_DATA, 3000, "error");
+      toast(MSG_NO_LOG_DATA, "error");
     } else if (logData.content === GENERIC_ERROR_MESSAGE) {
-      toast(GENERIC_ERROR_MESSAGE_SHORT, 3000, "error");
+      toast(GENERIC_ERROR_MESSAGE_SHORT, "error");
     }
     return;
   }
@@ -236,7 +260,7 @@ async function fetchLogSourceContent(showRefreshToast = false) {
     shouldSwitchToNav: !showRefreshToast,
   });
   if (showRefreshToast) {
-    toast(REFRESH_SUCCESS_MESSAGE, 3000, "success");
+    toast(REFRESH_SUCCESS_MESSAGE, "success");
   }
 }
 
@@ -249,12 +273,7 @@ async function fetchLogSourceContent(showRefreshToast = false) {
  *   shouldSwitchToNav?: boolean,
  * }} params
  */
-function updateLogSourceViewState({
-  content,
-  lines = "",
-  errorCount = 0,
-  shouldSwitchToNav = false,
-}) {
+function updateLogSourceViewState({ content, lines = "", errorCount = 0, shouldSwitchToNav = false }) {
   const ui = Alpine.store("ui");
   const isFirstLoadedSource = !ui.hasLoadedLogSourceOnce;
 
@@ -330,14 +349,14 @@ function clearLogFile(fileLocation) {
           Alpine.store("ui").selectedLogSource = NONE_SELECTED;
         }
         logger.debug("Log source cleared successfully.");
-        toast("Log Source Cleared", 3000, "success");
+        toast("Log Source Cleared", "success");
       } else {
-        toast(GENERIC_ERROR_MESSAGE_SHORT, 3000, "error");
+        toast(GENERIC_ERROR_MESSAGE_SHORT, "error");
         logger.error(`Failed to clear log source: ${response.status} - ${response.statusText}`);
       }
     })
     .catch((error) => {
-      toast(GENERIC_ERROR_MESSAGE_SHORT, 3000, "error");
+      toast(GENERIC_ERROR_MESSAGE_SHORT, "error");
       logger.error("Caught error while clearing log source:", error);
     });
 }
@@ -345,11 +364,12 @@ function clearLogFile(fileLocation) {
 /**
  * Show a toast message.
  * @param {string} message The message to display.
+ * @param {'success' | 'error' | 'info' | 'warning' } type The type of toast.
+ * @param {'center' | 'bottom'} placement The placement of the toast stack.
  * @param {number} timeout Duration in milliseconds before the toast disappears.
- * @param {'success' | 'error' } type The type of toast ("success" or "error").
  */
-function toast(message, timeout = 3000, type = "success") {
-  Alpine.store("ui").toast.push(message, timeout, type);
+function toast(message, type = "success", placement = "center", timeout = 3000) {
+  Alpine.store("ui").toast.push(message, type, placement, timeout);
 }
 
 function setUpSSE() {

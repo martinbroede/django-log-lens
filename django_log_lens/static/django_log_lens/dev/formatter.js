@@ -36,6 +36,7 @@ class LogRenderer {
    * @returns {void}
    */
   renderLogContent() {
+    this.errorCounter = 0;
     this.renderedLines = this.lines.map((line) => this.colorizeLogLevels(this.renderLine(line) + "<br />"));
   }
 
@@ -48,19 +49,16 @@ class LogRenderer {
     const newLines = logContent.split("\n");
 
     if (logContent) {
-      this.renderedLines.pop(); // remove last <br /> if new content is added
-      this.totalRenderedLines -= 1;
+      this.lines.pop(); // remove last line to avoid duplication on append
       this.totalLines -= 1;
     }
 
-    const linesToKeep = Math.max(0, this.limitLinesTo - newLines.length);
-    const appendedRenderedLines = newLines.map((line) => this.colorizeLogLevels(this.renderLine(line)) + "<br />");
-    this.renderedLines = this.renderedLines.slice(-linesToKeep);
-    this.renderedLines.push(...appendedRenderedLines);
-    this.totalRenderedLines += newLines.length;
+    this.lines.push(...newLines);
+    this.lines = this.lines.slice(-this.limitLinesTo);
     this.totalLines += newLines.length;
     this.firstLine = this.totalLines > this.limitLinesTo ? this.totalLines - this.limitLinesTo + 1 : 1;
-    this.renderedLines = this.renderedLines.slice(-this.limitLinesTo);
+    this.totalRenderedLines = this.lines.length;
+    this.renderLogContent();
 
     return;
   }
@@ -144,11 +142,11 @@ class LogRenderer {
 
       if (level >= 50) {
         spanClass = "critical";
-        contentId = `error-${this._generateRandomId()}`;
+        contentId = `error-${this.errorCounter}`;
         this.errorCounter++;
       } else if (level >= 40) {
         spanClass = "error";
-        contentId = `error-${this._generateRandomId()}`;
+        contentId = `error-${this.errorCounter}`;
         this.errorCounter++;
       } else if (level >= 30) {
         spanClass = "warning";
@@ -162,11 +160,11 @@ class LogRenderer {
 
       if (levelText === "critical" || levelText === "fatal") {
         spanClass = "critical";
-        contentId = `error-${this._generateRandomId()}`;
+        contentId = `error-${this.errorCounter}`;
         this.errorCounter++;
       } else if (levelText === "error") {
         spanClass = "error";
-        contentId = `error-${this._generateRandomId()}`;
+        contentId = `error-${this.errorCounter}`;
         this.errorCounter++;
       } else if (levelText === "warning" || levelText === "warn") {
         spanClass = "warning";
@@ -181,6 +179,7 @@ class LogRenderer {
 
     line = `<span log-line id="${lineId}">${line.replace(stripPrefix, "")}</span>`;
 
-    return `</span><span id="${contentId}" class="${spanClass}">${line}`;
+    const idAttr = contentId ? ` id="${contentId}"` : "";
+    return `</span><span${idAttr} class="${spanClass}">${line}`;
   }
 }

@@ -342,16 +342,40 @@
       </article>
     </dialog>
 
-    <div class="msg-toast-stack" x-show="$store.ui.toast.items.length > 0">
-      <template x-for="t in $store.ui.toast.items" :key="t.id">
+    <div class="msg-toast-stack" x-show="$store.ui.toast.items.some(t => t.placement !== 'bottom')">
+      <template x-for="t in $store.ui.toast.items.filter(t => t.placement !== 'bottom')" :key="t.id">
         <div class="msg-toast"
              :class="{
                'msg-toast-success': t.type === 'success',
+               'msg-toast-info': t.type === 'info',
                'msg-toast-error': t.type === 'error',
+               'msg-toast-warning': t.type === 'warning',
                'msg-toast-leaving': t.isLeaving
              }">
           <div x-show="t.type === 'error'">{% icon_error class="icon-toast" %}</div>
           <div x-show="t.type === 'success'">{% icon_check_circle class="icon-toast" %}</div>
+          <div x-show="t.type === 'info'">{% icon_info class="icon-toast" %}</div>
+          <div x-show="t.type === 'warning'">{% icon_info class="icon-toast" %}</div>
+          <span x-text="t.message"></span>
+        </div>
+      </template>
+    </div>
+
+    <div class="msg-toast-stack msg-toast-stack-bottom"
+         x-show="$store.ui.toast.items.some(t => t.placement === 'bottom')">
+      <template x-for="t in $store.ui.toast.items.filter(t => t.placement === 'bottom')" :key="t.id">
+        <div class="msg-toast"
+             :class="{
+               'msg-toast-success': t.type === 'success',
+               'msg-toast-info': t.type === 'info',
+               'msg-toast-error': t.type === 'error',
+               'msg-toast-warning': t.type === 'warning',
+               'msg-toast-leaving': t.isLeaving
+             }">
+          <div x-show="t.type === 'error'">{% icon_error class="icon-toast" %}</div>
+          <div x-show="t.type === 'success'">{% icon_check_circle class="icon-toast" %}</div>
+          <div x-show="t.type === 'info'">{% icon_info class="icon-toast" %}</div>
+          <div x-show="t.type === 'warning'">{% icon_info class="icon-toast" %}</div>
           <span x-text="t.message"></span>
         </div>
       </template>

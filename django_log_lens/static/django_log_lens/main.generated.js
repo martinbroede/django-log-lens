@@ -45,13 +45,27 @@ pathPrefix: localStorage.getItem("pathPrefix") || "",
 pathSplitter: localStorage.getItem("pathSplitter") || "",
 toast: {
 items: [],
-push(message, timeout = 3000, type = "success") {
+push(message, type, placement, timeout) {
+if (placement === "bottom") {
+const existing = this.items.find((item) => item.placement === "bottom");
+if (existing) {
+existing.message = message;
+existing.type = type;
+existing.isLeaving = false;
+if (existing.dismissTimer) {
+clearTimeout(existing.dismissTimer);
+}
+existing.dismissTimer = setTimeout(() => this.dismiss(existing.id), timeout);
+return;
+}
+}
 const id =
 globalThis.crypto && typeof globalThis.crypto.randomUUID === "function"
 ? globalThis.crypto.randomUUID()
 : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-this.items.push({ id, message, type, isLeaving: false });
-setTimeout(() => this.dismiss(id), timeout);
+const toastItem = { id, message, type, placement, isLeaving: false, dismissTimer: null };
+this.items.push(toastItem);
+toastItem.dismissTimer = setTimeout(() => this.dismiss(id), timeout);
 },
 dismiss(id) {
 const toast = this.items.find((item) => item.id === id);
@@ -59,6 +73,10 @@ if (!toast || toast.isLeaving) {
 return;
 }
 toast.isLeaving = true;
+if (toast.dismissTimer) {
+clearTimeout(toast.dismissTimer);
+toast.dismissTimer = null;
+}
 setTimeout(() => {
 this.items = this.items.filter((item) => item.id !== id);
 }, TOAST_EXIT_ANIMATION_MS);
@@ -123,7 +141,7 @@ logger.info("Alpine.js initialized.");
 function pauseAutoRefresh() {
 if (Alpine.store("ui").autoRefresh) {
 Alpine.store("ui").autoRefresh = false;
-toast("Auto-Refresh Paused", 1000);
+toast("Auto-Refresh Paused");
 }
 }
 function invalidateSearchResults() {
@@ -152,9 +170,9 @@ content: markAsError(logData.content),
 shouldSwitchToNav: true,
 });
 if (logData.content === MSG_NO_LOG_DATA) {
-toast(MSG_NO_LOG_DATA, 3000, "error");
+toast(MSG_NO_LOG_DATA, "error");
 } else if (logData.content === GENERIC_ERROR_MESSAGE) {
-toast(GENERIC_ERROR_MESSAGE_SHORT, 3000, "error");
+toast(GENERIC_ERROR_MESSAGE_SHORT, "error");
 }
 return;
 }
@@ -168,15 +186,10 @@ errorCount: logRenderer.errorCounter,
 shouldSwitchToNav: !showRefreshToast,
 });
 if (showRefreshToast) {
-toast(REFRESH_SUCCESS_MESSAGE, 3000, "success");
+toast(REFRESH_SUCCESS_MESSAGE, "success");
 }
 }
-function updateLogSourceViewState({
-content,
-lines = "",
-errorCount = 0,
-shouldSwitchToNav = false,
-}) {
+function updateLogSourceViewState({ content, lines = "", errorCount = 0, shouldSwitchToNav = false }) {
 const ui = Alpine.store("ui");
 const isFirstLoadedSource = !ui.hasLoadedLogSourceOnce;
 ui.logSource = { content, lines };
@@ -237,19 +250,19 @@ Alpine.store("ui").logSource = INITIAL_LOG_SOURCE;
 Alpine.store("ui").selectedLogSource = NONE_SELECTED;
 }
 logger.debug("Log source cleared successfully.");
-toast("Log Source Cleared", 3000, "success");
+toast("Log Source Cleared", "success");
 } else {
-toast(GENERIC_ERROR_MESSAGE_SHORT, 3000, "error");
+toast(GENERIC_ERROR_MESSAGE_SHORT, "error");
 logger.error(`Failed to clear log source: ${response.status} - ${response.statusText}`);
 }
 })
 .catch((error) => {
-toast(GENERIC_ERROR_MESSAGE_SHORT, 3000, "error");
+toast(GENERIC_ERROR_MESSAGE_SHORT, "error");
 logger.error("Caught error while clearing log source:", error);
 });
 }
-function toast(message, timeout = 3000, type = "success") {
-Alpine.store("ui").toast.push(message, timeout, type);
+function toast(message, type = "success", placement = "center", timeout = 3000) {
+Alpine.store("ui").toast.push(message, type, placement, timeout);
 }
 function setUpSSE() {
 const evtSource = new EventSource(SSE_API_ENDPOINT);
@@ -353,23 +366,21 @@ return Array.from(
 ).join("\n");
 }
 renderLogContent() {
+this.errorCounter = 0;
 this.renderedLines = this.lines.map((line) => this.colorizeLogLevels(this.renderLine(line) + "<br />"));
 }
 appendLogContent(logContent) {
 const newLines = logContent.split("\n");
 if (logContent) {
-this.renderedLines.pop(); // remove last <br /> if new content is added
-this.totalRenderedLines -= 1;
+this.lines.pop(); // remove last line to avoid duplication on append
 this.totalLines -= 1;
 }
-const linesToKeep = Math.max(0, this.limitLinesTo - newLines.length);
-const appendedRenderedLines = newLines.map((line) => this.colorizeLogLevels(this.renderLine(line)) + "<br />");
-this.renderedLines = this.renderedLines.slice(-linesToKeep);
-this.renderedLines.push(...appendedRenderedLines);
-this.totalRenderedLines += newLines.length;
+this.lines.push(...newLines);
+this.lines = this.lines.slice(-this.limitLinesTo);
 this.totalLines += newLines.length;
 this.firstLine = this.totalLines > this.limitLinesTo ? this.totalLines - this.limitLinesTo + 1 : 1;
-this.renderedLines = this.renderedLines.slice(-this.limitLinesTo);
+this.totalRenderedLines = this.lines.length;
+this.renderLogContent();
 return;
 }
 getRenderedLogContent() {
@@ -422,11 +433,11 @@ const level = parseInt(levelStr, 10);
 stripPrefix = fullMatch;
 if (level >= 50) {
 spanClass = "critical";
-contentId = `error-${this._generateRandomId()}`;
+contentId = `error-${this.errorCounter}`;
 this.errorCounter++;
 } else if (level >= 40) {
 spanClass = "error";
-contentId = `error-${this._generateRandomId()}`;
+contentId = `error-${this.errorCounter}`;
 this.errorCounter++;
 } else if (level >= 30) {
 spanClass = "warning";
@@ -439,11 +450,11 @@ spanClass = "debug";
 const levelText = (textPrefixMatch[1] || textPrefixMatch[2]).toLowerCase();
 if (levelText === "critical" || levelText === "fatal") {
 spanClass = "critical";
-contentId = `error-${this._generateRandomId()}`;
+contentId = `error-${this.errorCounter}`;
 this.errorCounter++;
 } else if (levelText === "error") {
 spanClass = "error";
-contentId = `error-${this._generateRandomId()}`;
+contentId = `error-${this.errorCounter}`;
 this.errorCounter++;
 } else if (levelText === "warning" || levelText === "warn") {
 spanClass = "warning";
@@ -456,7 +467,8 @@ spanClass = "debug";
 return `<span log-line id="${lineId}">${line}</span>`;
 }
 line = `<span log-line id="${lineId}">${line.replace(stripPrefix, "")}</span>`;
-return `</span><span id="${contentId}" class="${spanClass}">${line}`;
+const idAttr = contentId ? ` id="${contentId}"` : "";
+return `</span><span${idAttr} class="${spanClass}">${line}`;
 }
 }
 const logger = {
@@ -564,7 +576,7 @@ if (searchResults.length === 0) {
 getSearchResults();
 }
 if (searchResults.length === 0) {
-if (Alpine.store("ui").searchTerm) toast("No results", 1000, "error");
+if (Alpine.store("ui").searchTerm) toast("No matches", "error");
 return;
 }
 pauseAutoRefresh();
@@ -576,6 +588,7 @@ nextIndex = (currentIndex + 1) % searchResults.length;
 }
 const nextElem = searchResults[nextIndex];
 nextElem.classList.add("search-highlight");
+toast(`Match #${nextIndex + 1}/${searchResults.length}`, "success", "bottom");
 const logWrapper = document.getElementById("div-pre-wrapper");
 logWrapper.scrollTop = nextElem.offsetTop - logWrapper.offsetTop;
 logger.debug(`Navigated to search result ${nextIndex + 1} of ${searchResults.length}`);
@@ -588,33 +601,72 @@ function scrollToBottom() {
 const logWrapper = document.getElementById("div-pre-wrapper");
 logWrapper.scrollTo({ top: logWrapper.scrollHeight, behavior: "smooth" });
 }
+function getErrorElements() {
+return Array.from(document.querySelectorAll("#pre-log-content span[id^='error-']"));
+}
 function gotoNextError() {
+pauseAutoRefresh();
 const uiStore = Alpine.store("ui");
-uiStore.currentErrorIndex = (uiStore.currentErrorIndex + 1) % uiStore.errorCount;
-gotoErrorNumber(uiStore.currentErrorIndex);
+const errorElements = getErrorElements();
+const errorCount = errorElements.length;
+uiStore.errorCount = errorCount;
+if (errorCount === 0) {
+toast("No errors", "error");
+return;
+}
+uiStore.currentErrorIndex = (uiStore.currentErrorIndex + 1 + errorCount) % errorCount;
+gotoErrorNumber(uiStore.currentErrorIndex, errorElements);
 }
 function gotoPrevError() {
+pauseAutoRefresh();
 const uiStore = Alpine.store("ui");
-uiStore.currentErrorIndex =
-uiStore.currentErrorIndex < 0 ? 0 : (uiStore.currentErrorIndex - 1 + uiStore.errorCount) % uiStore.errorCount;
-gotoErrorNumber(uiStore.currentErrorIndex);
+const errorElements = getErrorElements();
+const errorCount = errorElements.length;
+uiStore.errorCount = errorCount;
+if (errorCount === 0) {
+toast("No errors", "error");
+return;
+}
+if (uiStore.currentErrorIndex < 0) {
+uiStore.currentErrorIndex = errorCount - 1;
+} else {
+uiStore.currentErrorIndex = (uiStore.currentErrorIndex - 1 + errorCount) % errorCount;
+}
+gotoErrorNumber(uiStore.currentErrorIndex, errorElements);
 }
 function gotoLatestError() {
+pauseAutoRefresh();
 const uiStore = Alpine.store("ui");
-uiStore.currentErrorIndex = uiStore.errorCount - 1;
-gotoErrorNumber(uiStore.currentErrorIndex);
+const errorElements = getErrorElements();
+const errorCount = errorElements.length;
+uiStore.errorCount = errorCount;
+if (errorCount === 0) {
+toast("No errors", "error");
+return;
 }
-function gotoErrorNumber(errorNumber) {
-const lineElement = document.getElementById(`error-${errorNumber}`);
+uiStore.currentErrorIndex = errorCount - 1;
+gotoErrorNumber(uiStore.currentErrorIndex, errorElements);
+}
+function gotoErrorNumber(errorNumber, errorElements = null) {
+const elements = errorElements || getErrorElements();
+const parsedIndex = Number.parseInt(String(errorNumber), 10);
+if (Number.isNaN(parsedIndex) || elements.length === 0) {
+logger.error("Invalid or missing error number:", errorNumber);
+return;
+}
+const normalizedIndex = ((parsedIndex % elements.length) + elements.length) % elements.length;
+const lineElement = elements[normalizedIndex] || document.getElementById(`error-${normalizedIndex}`);
 const logWrapper = document.getElementById("div-pre-wrapper");
 if (lineElement) {
+Alpine.store("ui").currentErrorIndex = normalizedIndex;
+toast(`Error #${normalizedIndex + 1}/${elements.length}`, "info", "bottom");
 logWrapper.scrollTop = lineElement.offsetTop - logWrapper.offsetTop;
 lineElement.classList.add("search-highlight");
 setTimeout(() => {
 lineElement.classList.remove("search-highlight");
 }, 5000);
 } else {
-logger.error("No such error number:", errorNumber);
+logger.error("No such error number:", normalizedIndex);
 }
 }
 function gotoLine(lineNumber) {
@@ -628,6 +680,6 @@ setTimeout(() => {
 lineElement.classList.remove("highlight");
 }, 3000);
 } else {
-toast("No such line number", 1000, "error");
+toast("No such line number", "error");
 }
 }

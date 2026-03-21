@@ -112,6 +112,20 @@ small {
     color: var(--pico-del-color);
 }
 
+.msg-toast-info {
+    border: 2px solid var(--pico-primary);
+    background-color: var(--pico-background-color);
+    box-shadow: 0rem 0rem 2rem 2rem #ff980014;
+    color: var(--pico-primary);
+}
+
+.msg-toast-warning {
+    border: 2px solid var(--warning-color);
+    background-color: var(--pico-background-color);
+    box-shadow: 0rem 0rem 2rem 2rem #ff980014;
+    color: var(--warning-color);
+}
+
 .msg-toast {
     align-items: center;
     border-radius: var(--pico-border-radius);
@@ -156,6 +170,13 @@ small {
     top: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
+}
+
+.msg-toast-stack-bottom {
+    bottom: 1rem;
+    height: auto;
+    top: auto;
+    transform: translateX(-50%);
 }
 
 /** Miscellaneous */
