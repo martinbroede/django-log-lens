@@ -1,107 +1,3 @@
-/** @type {any} */ globalThis.Alpine;
-
-const LOG_FILE_API_ENDPOINT = document
-  .querySelectorAll("script[data-log-file-api-endpoint]")[0]
-  .getAttribute("data-log-file-api-endpoint");
-
-const SSE_API_ENDPOINT = document
-  .querySelectorAll("script[data-sse-api-endpoint]")[0]
-  .getAttribute("data-sse-api-endpoint");
-
-const REFRESH_SUCCESS_MESSAGE = "Refreshed Contents";
-
-const MSG_NO_LOG_DATA = "NO LOG DATA AVAILABLE (FILE NOT FOUND)"; // reconcile with backend constant
-
-const MISCONFIGURATION = "MISCONFIGURATION"; // reconcile with backend constant
-
-const GENERIC_ERROR_MESSAGE =
-  "An error occurred while processing your request. Please check the console for more details.";
-
-const GENERIC_ERROR_MESSAGE_SHORT = "An Error Occurred. Please Check Console.";
-
-const INITIAL_LOG_SOURCE = { content: "", lines: "" };
-
-const NONE_SELECTED = "NONE SELECTED";
-
-const TOAST_EXIT_ANIMATION_MS = 280;
-
-let logRenderer = null;
-
-/**
- * List of keys in the Alpine.js store to synchronize with localStorage
- * so that user preferences persist across sessions.
- */
-const SYNC_WITH_LOCAL_STORAGE_KEYS = [
-  "fullWidth",
-  "autoRefresh",
-  "selectedLogSource",
-  "searchTerm",
-  "limitLinesTo",
-  "pathPrefix",
-  "pathSplitter",
-];
-
-/**
- * Initial state for the Alpine.js store managing the UI state.
- */
-const INITIAL_STATE = {
-  activeTab: getTabFromHash() || "sources",
-  autoRefresh: localStorage.getItem("autoRefresh") === "true",
-  currentErrorIndex: -1,
-  errorCount: 0,
-  fullWidth: localStorage.getItem("fullWidth") === "true",
-  hasLoadedLogSourceOnce: false,
-  isLoading: false,
-  limitLinesTo: localStorage.getItem("limitLinesTo") || 1000,
-  logSource: INITIAL_LOG_SOURCE,
-  searchResults: [],
-  searchTerm: localStorage.getItem("searchTerm") || "",
-  selectedForClearing: NONE_SELECTED,
-  selectedLogSource: localStorage.getItem("selectedLogSource") || NONE_SELECTED,
-  pathPrefix: localStorage.getItem("pathPrefix") || "",
-  pathSplitter: localStorage.getItem("pathSplitter") || "",
-  toast: {
-    items: [],
-    push(message, type, placement, timeout) {
-      if (placement === "bottom") {
-        const existing = this.items.find((item) => item.placement === "bottom");
-        if (existing) {
-          existing.message = message;
-          existing.type = type;
-          existing.isLeaving = false;
-          if (existing.dismissTimer) {
-            clearTimeout(existing.dismissTimer);
-          }
-          existing.dismissTimer = setTimeout(() => this.dismiss(existing.id), timeout);
-          return;
-        }
-      }
-
-      const id =
-        globalThis.crypto && typeof globalThis.crypto.randomUUID === "function"
-          ? globalThis.crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      const toastItem = { id, message, type, placement, isLeaving: false, dismissTimer: null };
-      this.items.push(toastItem);
-      toastItem.dismissTimer = setTimeout(() => this.dismiss(id), timeout);
-    },
-    dismiss(id) {
-      const toast = this.items.find((item) => item.id === id);
-      if (!toast || toast.isLeaving) {
-        return;
-      }
-      toast.isLeaving = true;
-      if (toast.dismissTimer) {
-        clearTimeout(toast.dismissTimer);
-        toast.dismissTimer = null;
-      }
-      setTimeout(() => {
-        this.items = this.items.filter((item) => item.id !== id);
-      }, TOAST_EXIT_ANIMATION_MS);
-    },
-  },
-};
-
 /**
  * Select a log source to view.
  * When the same file is selected again, switch to the navigation tab.
@@ -225,12 +121,12 @@ function syncSelectedLogSource() {
 /**
  * Fetch the log source content from the backend API
  * @param {boolean} showRefreshToast Whether to show a success toast after a successful refresh.
- * @returns {Promise<void>}
+ * @returns {Promise<symbol>}
  */
 async function fetchLogSourceContent(showRefreshToast = false) {
   const sourceName = Alpine.store("ui").selectedLogSource;
-  if (!sourceName || sourceName === NONE_SELECTED) {
-    return;
+  if (!sourceName || sourceName === CONST.STRINGS.NONE_SELECTED) {
+    return Promise.resolve(CONST.NOOP);
   }
 
   invalidateSearchResults();
@@ -242,12 +138,12 @@ async function fetchLogSourceContent(showRefreshToast = false) {
       content: markAsError(logData.content),
       shouldSwitchToNav: true,
     });
-    if (logData.content === MSG_NO_LOG_DATA) {
-      toast(MSG_NO_LOG_DATA, "error");
-    } else if (logData.content === GENERIC_ERROR_MESSAGE) {
-      toast(GENERIC_ERROR_MESSAGE_SHORT, "error");
+    if (logData.content === CONST.STRINGS.MSG_NO_LOG_DATA) {
+      toast(CONST.STRINGS.MSG_NO_LOG_DATA, "error");
+    } else if (logData.content === CONST.STRINGS.GENERIC_ERROR_MESSAGE) {
+      toast(CONST.STRINGS.GENERIC_ERROR_MESSAGE_SHORT, "error");
     }
-    return;
+    return Promise.resolve(CONST.ERROR);
   }
 
   const limitLinesTo = Alpine.store("ui").limitLinesTo;
@@ -260,7 +156,7 @@ async function fetchLogSourceContent(showRefreshToast = false) {
     shouldSwitchToNav: !showRefreshToast,
   });
   if (showRefreshToast) {
-    toast(REFRESH_SUCCESS_MESSAGE, "success");
+    toast(CONST.STRINGS.REFRESH_SUCCESS_MESSAGE, "success");
   }
 }
 
@@ -297,7 +193,7 @@ async function getLogFile(pathToFile, fromLine = 0) {
   const fromLineParam = fromLine > 0 ? `?from=${fromLine}` : "";
   const url = `${LOG_FILE_API_ENDPOINT}/${encodeURIComponent(pathToFile)}/${fromLineParam}`;
 
-  if (pathToFile && pathToFile !== NONE_SELECTED) {
+  if (pathToFile && pathToFile !== CONST.STRINGS.NONE_SELECTED) {
     let resp = null;
     let success = true;
     const content = await fetch(url, {
@@ -312,14 +208,14 @@ async function getLogFile(pathToFile, fromLine = 0) {
         if (resp.status != 200) {
           logger.error(`Failed to fetch log source (status:${resp.status})`);
           success = false;
-          return Promise.resolve(GENERIC_ERROR_MESSAGE);
+          return Promise.resolve(CONST.STRINGS.GENERIC_ERROR_MESSAGE);
         }
         return Promise.resolve(content);
       })
       .catch((error) => {
         success = false;
         logger.error("Caught error while fetching log source:", error);
-        return Promise.resolve(GENERIC_ERROR_MESSAGE);
+        return Promise.resolve(CONST.STRINGS.GENERIC_ERROR_MESSAGE);
       });
     return Promise.resolve({ content, success });
   } else {
@@ -346,17 +242,17 @@ function clearLogFile(fileLocation) {
         const selectedLogSource = Alpine.store("ui").selectedLogSource;
         if (fileLocation === selectedLogSource) {
           Alpine.store("ui").logSource = INITIAL_LOG_SOURCE;
-          Alpine.store("ui").selectedLogSource = NONE_SELECTED;
+          Alpine.store("ui").selectedLogSource = CONST.STRINGS.NONE_SELECTED;
         }
         logger.debug("Log source cleared successfully.");
         toast("Log Source Cleared", "success");
       } else {
-        toast(GENERIC_ERROR_MESSAGE_SHORT, "error");
+        toast(CONST.STRINGS.GENERIC_ERROR_MESSAGE, "error");
         logger.error(`Failed to clear log source: ${response.status} - ${response.statusText}`);
       }
     })
     .catch((error) => {
-      toast(GENERIC_ERROR_MESSAGE_SHORT, "error");
+      toast(CONST.STRINGS.GENERIC_ERROR_MESSAGE_SHORT, "error");
       logger.error("Caught error while clearing log source:", error);
     });
 }
