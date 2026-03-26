@@ -1,3 +1,7 @@
+/**
+ * Gets the current search term from the UI store and finds all log lines that match it,
+ * storing the matching elements in the searchResults array.
+ */
 function getSearchResults() {
   const searchTerm = Alpine.store("ui").searchTerm;
   const logFileElem = document.getElementById("pre-log-content");
@@ -13,19 +17,31 @@ function getSearchResults() {
   logger.debug("Searching log source for term:", searchTerm, "/ Found results:", searchResults.length);
 }
 
+function onClickSearch() {
+  const searchResults = Alpine.store("ui").searchResults;
+  if (Alpine.store("ui").searchTerm.trim() === "") {
+    toast("Please enter a search term", "error");
+    return;
+  }
+  if (searchResults.length === 0) {
+    getSearchResults(); // populate search results
+    if (searchResults.length === 0) {
+      if (Alpine.store("ui").searchTerm) toast("No matches", "error");
+      return;
+    }
+  }
+  pauseAutoRefresh();
+  const nextIndex = nextSearchResult();
+  toast(`Match #${nextIndex + 1}/${searchResults.length}`, "success", "bottom");
+}
+
+/**
+ * Jumps to the next search result in the logs, highlighting it and scrolling it into view.
+ * @returns The index of the current result
+ */
 function nextSearchResult() {
   const searchResults = Alpine.store("ui").searchResults;
 
-  if (searchResults.length === 0) {
-    getSearchResults();
-  }
-
-  if (searchResults.length === 0) {
-    if (Alpine.store("ui").searchTerm) toast("No matches", "error");
-    return;
-  }
-
-  pauseAutoRefresh();
   const currentIndex = searchResults.findIndex((elem) => elem.classList.contains("search-highlight"));
   let nextIndex = 0;
 
@@ -36,10 +52,10 @@ function nextSearchResult() {
 
   const nextElem = searchResults[nextIndex];
   nextElem.classList.add("search-highlight");
-  toast(`Match #${nextIndex + 1}/${searchResults.length}`, "success", "bottom");
   const logWrapper = document.getElementById("div-pre-wrapper");
   logWrapper.scrollTop = nextElem.offsetTop - logWrapper.offsetTop;
   logger.debug(`Navigated to search result ${nextIndex + 1} of ${searchResults.length}`);
+  return nextIndex;
 }
 
 /**
@@ -145,7 +161,7 @@ function gotoErrorNumber(errorNumber, errorElements = null) {
   const logWrapper = document.getElementById("div-pre-wrapper");
   if (lineElement) {
     Alpine.store("ui").currentErrorIndex = normalizedIndex;
-    toast(`Error #${normalizedIndex + 1}/${elements.length}`, "info", "bottom");
+    toast(`Error #${normalizedIndex + 1}/${elements.length}`, "error", "bottom");
     logWrapper.scrollTop = lineElement.offsetTop - logWrapper.offsetTop;
     lineElement.classList.add("search-highlight");
     setTimeout(() => {

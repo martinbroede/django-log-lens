@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import path
 
@@ -17,6 +18,8 @@ urlpatterns = [
 
     path('api/sources/stream', sse_endpoint, name="stream-api"),
     path('api/sources/files', lambda _: redirect('log-lens:view'), name="log-file-api-endpoint"),
-    path('api/sources/files/<path:path>/', api_logfile, name="log-file-api"),
-    path('api/logs/', log_client_msg, name="log-api"),
+    path('api/sources/files/<path:path>/', api_logfile, name="log-file-api")
 ]
+
+if getattr(settings, "ALLOW_JS_LOGGING", False):
+    urlpatterns.append(path('api/logs/', log_client_msg, name="log-api"))

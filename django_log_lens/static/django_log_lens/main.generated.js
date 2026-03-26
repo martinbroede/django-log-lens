@@ -148,7 +148,7 @@ logger.info("Alpine.js initialized.");
 function pauseAutoRefresh() {
 if (Alpine.store("ui").autoRefresh) {
 Alpine.store("ui").autoRefresh = false;
-toast("Auto-Refresh Paused");
+toast("Auto-Refresh Paused", "info");
 }
 }
 function invalidateSearchResults() {
@@ -341,7 +341,7 @@ fetchLogSourceContent(true);
 toast("Auto-Refresh Enabled");
 logger.info("Auto-refresh enabled, SSE connection established.");
 } else {
-toast("Auto-Refresh Paused");
+toast("Auto-Refresh Paused", "info");
 if (evtSource) {
 evtSource.close();
 evtSource = null;
@@ -577,16 +577,25 @@ searchResults.push(lineElem);
 });
 logger.debug("Searching log source for term:", searchTerm, "/ Found results:", searchResults.length);
 }
-function nextSearchResult() {
+function onClickSearch() {
 const searchResults = Alpine.store("ui").searchResults;
-if (searchResults.length === 0) {
-getSearchResults();
+if (Alpine.store("ui").searchTerm.trim() === "") {
+toast("Please enter a search term", "error");
+return;
 }
+if (searchResults.length === 0) {
+getSearchResults(); // populate search results
 if (searchResults.length === 0) {
 if (Alpine.store("ui").searchTerm) toast("No matches", "error");
 return;
 }
+}
 pauseAutoRefresh();
+const nextIndex = nextSearchResult();
+toast(`Match #${nextIndex + 1}/${searchResults.length}`, "success", "bottom");
+}
+function nextSearchResult() {
+const searchResults = Alpine.store("ui").searchResults;
 const currentIndex = searchResults.findIndex((elem) => elem.classList.contains("search-highlight"));
 let nextIndex = 0;
 if (currentIndex !== -1) {
@@ -595,10 +604,10 @@ nextIndex = (currentIndex + 1) % searchResults.length;
 }
 const nextElem = searchResults[nextIndex];
 nextElem.classList.add("search-highlight");
-toast(`Match #${nextIndex + 1}/${searchResults.length}`, "success", "bottom");
 const logWrapper = document.getElementById("div-pre-wrapper");
 logWrapper.scrollTop = nextElem.offsetTop - logWrapper.offsetTop;
 logger.debug(`Navigated to search result ${nextIndex + 1} of ${searchResults.length}`);
+return nextIndex;
 }
 function scrollToTop() {
 pauseAutoRefresh();
@@ -666,7 +675,7 @@ const lineElement = elements[normalizedIndex] || document.getElementById(`error-
 const logWrapper = document.getElementById("div-pre-wrapper");
 if (lineElement) {
 Alpine.store("ui").currentErrorIndex = normalizedIndex;
-toast(`Error #${normalizedIndex + 1}/${elements.length}`, "info", "bottom");
+toast(`Error #${normalizedIndex + 1}/${elements.length}`, "error", "bottom");
 logWrapper.scrollTop = lineElement.offsetTop - logWrapper.offsetTop;
 lineElement.classList.add("search-highlight");
 setTimeout(() => {

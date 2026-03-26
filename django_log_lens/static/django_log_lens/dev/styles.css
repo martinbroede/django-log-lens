@@ -101,28 +101,24 @@ small {
 .msg-toast-success {
     border: 2px solid var(--pico-form-element-valid-border-color);
     background-color: var(--pico-background-color);
-    box-shadow: 0rem 0rem 2rem 2rem #4b767011;
     color: var(--pico-ins-color);
 }
 
 .msg-toast-error {
     border: 2px solid var(--pico-form-element-invalid-border-color);
     background-color: var(--pico-background-color);
-    box-shadow: 0rem 0rem 2rem 2rem #dc00000b;
     color: var(--pico-del-color);
 }
 
 .msg-toast-info {
     border: 2px solid var(--pico-primary);
     background-color: var(--pico-background-color);
-    box-shadow: 0rem 0rem 2rem 2rem #ff980014;
     color: var(--pico-primary);
 }
 
 .msg-toast-warning {
     border: 2px solid var(--warning-color);
     background-color: var(--pico-background-color);
-    box-shadow: 0rem 0rem 2rem 2rem #ff980014;
     color: var(--warning-color);
 }
 

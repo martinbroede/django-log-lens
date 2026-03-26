@@ -5,11 +5,11 @@
 {% block scripts %}
   {% if LOG_LENS_DEBUG %}
     <script defer src="{% static 'django_log_lens/dev/alpinejs.v3.vendor.js' %}"></script>
-    <script src="{% static 'django_log_lens/dev/init.js' %}"></script>
-    <script src="{% static 'django_log_lens/dev/notifications.js' %}"></script>
     <script data-log-file-api-endpoint="{% url 'log-lens:log-file-api-endpoint' %}"
             data-sse-api-endpoint="{% url 'log-lens:stream-api' %}"
             src="{% static 'django_log_lens/dev/main.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/notifications.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/init.js' %}"></script>
     <script src="{% static 'django_log_lens/dev/formatter.js' %}"></script>
     <script src="{% static 'django_log_lens/dev/util.js' %}"></script>
     <script src="{% static 'django_log_lens/dev/navigation.js' %}"></script>
@@ -290,10 +290,10 @@
             <input name="Search"
                    placeholder="Search"
                    aria-label="Search"
-                   @keyup.enter="nextSearchResult()"
+                   @keyup.enter="onClickSearch()"
                    @change="invalidateSearchResults()"
                    @input="ui.searchTerm = $event.target.value" />
-            <button @click="nextSearchResult()">{% icon_search class="icon-btn-centered" %}</button>
+            <button @click="onClickSearch()">{% icon_search class="icon-btn-centered" %}</button>
           </div>
 
           <div role="group">

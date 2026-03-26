@@ -58,4 +58,6 @@ def _produce_resource_logs_thread():
     while True:
         event = random.choice(resource_events)
         event()
-        sleep(random.uniform(0.0, 0.5))
+        event = random.choice(resource_events)
+        event()
+        sleep(random.uniform(0.0, 3))

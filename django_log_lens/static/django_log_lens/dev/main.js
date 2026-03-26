@@ -85,7 +85,7 @@ function setUp() {
 function pauseAutoRefresh() {
   if (Alpine.store("ui").autoRefresh) {
     Alpine.store("ui").autoRefresh = false;
-    toast("Auto-Refresh Paused");
+    toast("Auto-Refresh Paused", "info");
   }
 }
 
@@ -348,7 +348,7 @@ function handleAutoRefreshToggle() {
       toast("Auto-Refresh Enabled");
       logger.info("Auto-refresh enabled, SSE connection established.");
     } else {
-      toast("Auto-Refresh Paused");
+      toast("Auto-Refresh Paused", "info");
       if (evtSource) {
         evtSource.close();
         evtSource = null;

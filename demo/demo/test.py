@@ -53,7 +53,7 @@ class TestLogLens(TestCase):
         url = reverse(LOG_FILE_API_NAME, args=[PATH_TO_LOG_FILE])
         self.client.force_login(self.superuser)
         response = self.client.get(url + "?handler_name=client")
-        content = response.content.decode('utf-8')
+        content = response.streaming_content.__next__().decode("utf-8")  # type: ignore
         self.assertEqual(response.status_code, 200, "View should return 200 OK.")
         self.assertTrue(log_message in content, "Log message should be in response.")
         self.assertTrue(severity in content, "Severity must be found in response.")
