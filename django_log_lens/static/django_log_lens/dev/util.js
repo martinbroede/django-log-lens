@@ -102,7 +102,7 @@ function copyElementToClipboard(element) {
   navigator.clipboard
     .writeText(text)
     .then(() => {
-      toast(`Copied to clipboard:\n${text}`, 2000, "success");
+      toast(`Copied to clipboard:\n${text}`, "success");
     })
     .catch((err) => {
       console.error("Could not copy text:", err);
