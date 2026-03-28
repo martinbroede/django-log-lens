@@ -224,7 +224,10 @@
         <details>
           <summary>How to configure this {% icon_help %}</summary>
           <blockquote>
-            todo - write instructions on how to use path splitter and path prefix
+            <p><strong>Path Splitter:</strong> A delimiter to split file paths at. The part after the delimiter is kept. Useful for removing container/remote path prefixes. For example, if your logs contain <code>/app/myproject/views.py</code> and you set the splitter to <code>/app</code>, it will keep <code>/myproject/views.py</code>.</p>
+            <p><strong>Path Prefix:</strong> A prefix to prepend to the split path. Used to convert container paths to your local system paths. If you set the prefix to <code>/home/john-doe/projects</code>, the final path becomes <code>/home/john-doe/projects/myproject/views.py</code>, which can then be opened in VS Code.</p>
+            <p><strong>Example:</strong> Container path: <code>/app/myproject/views.py</code> → Split by <code>/app</code> → Prefix with <code>/home/user/projects</code> → Result: <code>/home/user/projects/myproject/views.py</code></p>
+            <p>The settings will apply to file paths that can be opened in VS Code as well as all strings containing file paths that can be copied to the clipboard by clicking on them.</p>
           </blockquote>
         </details>
         <br />
