@@ -235,13 +235,16 @@
         <br />
         <div class="grid">
           <div>
-            <input type="number"
-                   min="10"
-                   max="10000"
-                   name="limit-log-lines"
-                   aria-label="Limit Log Lines"
-                   @input="ui.limitLinesTo = $event.target.value;"
-                   :value="ui.limitLinesTo" />
+            <select name="limit-log-lines"
+                    aria-label="Limit Log Lines"
+                    @change="ui.limitLinesTo = $event.target.value;"
+                    :value="ui.limitLinesTo">
+              <option value="100">100</option>
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+              <option value="5000">5000</option>
+              <option value="10000">10000</option>
+            </select>
             <small>Limit Number of Log Lines</small>
           </div>
           <div class="spaced">
