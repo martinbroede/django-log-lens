@@ -2,13 +2,16 @@
 {% load log_lens_components %}
 
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en"
+      data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
     <meta name="description"
           content="Django Log Lens - A web-based log viewer for Django applications" />
-    <meta name="keywords" content="django, logging, log viewer, web-based" />
+    <meta name="keywords"
+          content="django, logging, log viewer, web-based" />
     <title>Django Log Lens</title>
     <link rel="icon"
           type="image/png"
@@ -16,7 +19,8 @@
     {% if LOG_LENS_DEBUG %}
       <link rel="stylesheet"
             href="{% static 'django_log_lens/dev/pico.v2.vendor.css' %}" />
-      <link rel="stylesheet" href="{% static 'django_log_lens/dev/styles.css' %}" />
+      <link rel="stylesheet"
+            href="{% static 'django_log_lens/dev/styles.css' %}" />
     {% else %}
       <link rel="stylesheet"
             href="{% static 'django_log_lens/styles.generated.css' %}" />
@@ -37,43 +41,51 @@
     <footer id="footer-base">
       <div class="container">
         <span class="spaced">
-          <p>
+          <span>
             © 2024 - <span x-text="new Date().getFullYear()"></span> Martin&nbsp;Broede
             <br class="show-xs show-sm" />
             <span class="show-md show-lg show-xl">&nbsp;·&nbsp;</span>
             Django&nbsp;Log&nbsp;Lens
-          </p>
-          <a href="https://github.com/martinbroede/django-log-lens"
-             target="_blank"
-             rel="noopener noreferrer"
-             class="secondary"
-             aria-label="GitHub Repository">{% icon_github %}</a>
+          </span>
+
+          <span>
+            <a role="link"
+               class="secondary"
+               @click="document.getElementById('dialog-credits').showModal();">Credits</a>
+            &nbsp;&nbsp;
+            <a href="https://github.com/martinbroede/django-log-lens"
+               target="_blank"
+               title="GitHub Repository"
+               rel="noopener noreferrer"
+               class="secondary"
+               aria-label="GitHub Repository">{% icon_github %}</a>
+          </span>
         </span>
       </div>
     </footer>
   </body>
   <script>
-      /**
-       * Toggle between light and dark themes.
-       */
-      function toggleTheme() {
-          const currentTheme = document.documentElement.getAttribute("data-theme");
-          const newTheme = currentTheme === "light" ? "dark" : "light";
-          document.documentElement.setAttribute("data-theme", newTheme);
-          localStorage.setItem("theme", newTheme);
-      }
+    /**
+     * Toggle between light and dark themes.
+     */
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = currentTheme === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+    }
 
-      /**
-       * Set the theme based on user preference stored in localStorage or system preference.
-       * If no preference is stored, use the system preference.
-       */
-      function setThemeFromPreference() {
-          const storedTheme = localStorage.getItem("theme") || "";
-          const systemSetting = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-          const theme = storedTheme || systemSetting;
-          document.documentElement.setAttribute("data-theme", theme);
-      }
+    /**
+     * Set the theme based on user preference stored in localStorage or system preference.
+     * If no preference is stored, use the system preference.
+     */
+    function setThemeFromPreference() {
+      const storedTheme = localStorage.getItem("theme") || "";
+      const systemSetting = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      const theme = storedTheme || systemSetting;
+      document.documentElement.setAttribute("data-theme", theme);
+    }
 
-      setThemeFromPreference();
+    setThemeFromPreference();
   </script>
 </html>

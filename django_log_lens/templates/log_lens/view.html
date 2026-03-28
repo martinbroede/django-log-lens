@@ -4,7 +4,8 @@
 
 {% block scripts %}
   {% if LOG_LENS_DEBUG %}
-    <script defer src="{% static 'django_log_lens/dev/alpinejs.v3.vendor.js' %}"></script>
+    <script defer
+            src="{% static 'django_log_lens/dev/alpinejs.v3.vendor.js' %}"></script>
     <script data-log-file-api-endpoint="{% url 'log-lens:log-file-api-endpoint' %}"
             data-sse-api-endpoint="{% url 'log-lens:stream-api' %}"
             src="{% static 'django_log_lens/dev/main.js' %}"></script>
@@ -100,7 +101,7 @@
                 <td class="spaced">
                   <span>
                     <a role="link"
-                        @click="selectSource('{{ source }}');">
+                       @click="selectSource('{{ source }}');">
                       <code class="transparent-background">{{ source }}</code>
                     </a>
                   </span>
@@ -112,7 +113,8 @@
                           <ul>
                             {% for slot in backup_slots %}
                               <li>
-                                <a role="link" @click="selectSource('{{ slot.0 }}');">{% icon_document_search %} {{ slot.1 }}</a>
+                                <a role="link"
+                                   @click="selectSource('{{ slot.0 }}');">{% icon_document_search %} {{ slot.1 }}</a>
                               </li>
                               <li>
                                 <a href="{% url 'log-lens:log-file-api-endpoint' %}/{{ slot.0 }}/"
@@ -129,7 +131,8 @@
                         <summary>Actions</summary>
                         <ul>
                           <li>
-                            <a role="link" @click="selectSource('{{ source }}');">{% icon_document_search %} Load</a>
+                            <a role="link"
+                               @click="selectSource('{{ source }}');">{% icon_document_search %} Load</a>
                           </li>
                           <li>
                             <a href="{% url 'log-lens:log-file-api-endpoint' %}/{{ source }}/"
@@ -261,9 +264,12 @@
 
         {% tab_header %}
 
-        <div class="grid" id="div-navigation-buttons">
-          <button class="outline contrast" @click="scrollToTop()">{% icon_arrow_up class="icon-btn" %} Top</button>
-          <button class="outline contrast" @click="scrollToBottom()">{% icon_arrow_down class="icon-btn" %} Bottom</button>
+        <div class="grid"
+             id="div-navigation-buttons">
+          <button class="outline contrast"
+                  @click="scrollToTop()">{% icon_arrow_up class="icon-btn" %} Top</button>
+          <button class="outline contrast"
+                  @click="scrollToBottom()">{% icon_arrow_down class="icon-btn" %} Bottom</button>
           <button class="outline"
                   x-bind:disabled="ui.errorCount === 0"
                   @click="gotoPrevError()">{% icon_arrow_left class="icon-btn" %} Prev Error</button>
@@ -319,8 +325,10 @@
          :class="{ 'container-fluid': ui.fullWidth, 'container': !ui.fullWidth }"
          x-show="(ui.activeTab === 'nav' || ui.activeTab === 'blank') && ui.selectedLogSource !== 'NONE SELECTED'">
       <div id="div-pre-wrapper">
-        <pre id="pre-line-counter" x-html="ui.logSource.lines"></pre>
-        <pre id="pre-log-content" x-html="ui.logSource.content"></pre>
+        <pre id="pre-line-counter"
+             x-html="ui.logSource.lines"></pre>
+        <pre id="pre-log-content"
+             x-html="ui.logSource.content"></pre>
       </div>
     </div>
 
@@ -331,12 +339,14 @@
           <h2>Clear Log Source</h2>
         </header>
         <p class="error">
-          <code class="transparent-background" x-text="ui.selectedForClearing"></code>
+          <code class="transparent-background"
+                x-text="ui.selectedForClearing"></code>
           <br />
           Are you sure you want to clear this logfile? This action cannot be undone.
         </p>
         <footer>
-          <button class="secondary" @click="$el.closest('dialog').close();">Cancel</button>
+          <button class="secondary"
+                  @click="$el.closest('dialog').close();">Cancel</button>
           <a role="button"
              @click="$el.closest('dialog').close(); clearLogFile(ui.selectedForClearing);">Confirm</a>
 
@@ -344,16 +354,44 @@
       </article>
     </dialog>
 
-    <div class="msg-toast-stack" x-show="$store.ui.toast.items.some(t => t.placement !== 'bottom')">
-      <template x-for="t in $store.ui.toast.items.filter(t => t.placement !== 'bottom')" :key="t.id">
+    <dialog id="dialog-credits">
+      <article>
+        <header class="spaced">
+          <h2>Credits</h2>
+        </header>
+        <p>
+          Django Log Lens is FOSS software licensed under the MIT License.
+          <br />
+          It utilizes the following open source projects:
+        </p>
+        <ul>
+          <li>
+            <a href="https://alpinejs.dev"
+               target="_blank"
+               rel="noopener noreferrer">Alpine.js</a> - Lightweight JavaScript framework,
+            <br />
+            License: MIT
+          </li>
+          <li>
+            <a href="https://picocss.com"
+               target="_blank"
+               rel="noopener noreferrer">Pico CSS</a> - Minimal CSS framework
+            <br />
+            License: MIT
+          </li>
+        </ul>
+        <footer>
+          <button @click="$el.closest('dialog').close();">Close</button>
+        </footer>
+      </article>
+    </dialog>
+
+    <div class="msg-toast-stack"
+         x-show="$store.ui.toast.items.some(t => t.placement !== 'bottom')">
+      <template x-for="t in $store.ui.toast.items.filter(t => t.placement !== 'bottom')"
+                :key="t.id">
         <div class="msg-toast"
-             :class="{
-               'msg-toast-success': t.type === 'success',
-               'msg-toast-info': t.type === 'info',
-               'msg-toast-error': t.type === 'error',
-               'msg-toast-warning': t.type === 'warning',
-               'msg-toast-leaving': t.isLeaving
-             }">
+             :class="{ 'msg-toast-success': t.type === 'success', 'msg-toast-info': t.type === 'info', 'msg-toast-error': t.type === 'error', 'msg-toast-warning': t.type === 'warning', 'msg-toast-leaving': t.isLeaving }">
           <div x-show="t.type === 'error'">{% icon_error class="icon-toast" %}</div>
           <div x-show="t.type === 'success'">{% icon_check_circle class="icon-toast" %}</div>
           <div x-show="t.type === 'info'">{% icon_info class="icon-toast" %}</div>
@@ -365,15 +403,10 @@
 
     <div class="msg-toast-stack msg-toast-stack-bottom"
          x-show="$store.ui.toast.items.some(t => t.placement === 'bottom')">
-      <template x-for="t in $store.ui.toast.items.filter(t => t.placement === 'bottom')" :key="t.id">
+      <template x-for="t in $store.ui.toast.items.filter(t => t.placement === 'bottom')"
+                :key="t.id">
         <div class="msg-toast"
-             :class="{
-               'msg-toast-success': t.type === 'success',
-               'msg-toast-info': t.type === 'info',
-               'msg-toast-error': t.type === 'error',
-               'msg-toast-warning': t.type === 'warning',
-               'msg-toast-leaving': t.isLeaving
-             }">
+             :class="{ 'msg-toast-success': t.type === 'success', 'msg-toast-info': t.type === 'info', 'msg-toast-error': t.type === 'error', 'msg-toast-warning': t.type === 'warning', 'msg-toast-leaving': t.isLeaving }">
           <div x-show="t.type === 'error'">{% icon_error class="icon-toast" %}</div>
           <div x-show="t.type === 'success'">{% icon_check_circle class="icon-toast" %}</div>
           <div x-show="t.type === 'info'">{% icon_info class="icon-toast" %}</div>
