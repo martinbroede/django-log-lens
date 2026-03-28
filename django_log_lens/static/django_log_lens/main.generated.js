@@ -157,34 +157,24 @@ Alpine.store("ui").searchResults.length = 0;
 function markAsError(content) {
 return `<span class="error">${content}</span>`;
 }
-function syncSelectedLogSource() {
-Alpine.effect(() => {
-fetchLogSourceContent();
-addOptionalWordBreaks();
-});
-}
-async function fetchLogSourceContent(showRefreshToast = false) {
+function isValidLogSourceSelected() {
 const sourceName = Alpine.store("ui").selectedLogSource;
-if (!sourceName || sourceName === CONST.STRINGS.NONE_SELECTED) {
-return Promise.resolve(CONST.NOOP);
+return sourceName && sourceName !== CONST.STRINGS.NONE_SELECTED;
 }
-invalidateSearchResults();
-Alpine.store("ui").isLoading = true;
-const logData = await getLogFile(sourceName);
-if (!logData.success) {
+function handleLogSourceFetchError(errorContent) {
 updateLogSourceViewState({
-content: markAsError(logData.content),
+content: markAsError(errorContent),
 shouldSwitchToNav: true,
 });
-if (logData.content === CONST.STRINGS.MSG_NO_LOG_DATA) {
+if (errorContent === CONST.STRINGS.MSG_NO_LOG_DATA) {
 toast(CONST.STRINGS.MSG_NO_LOG_DATA, "error");
-} else if (logData.content === CONST.STRINGS.GENERIC_ERROR_MESSAGE) {
+} else if (errorContent === CONST.STRINGS.GENERIC_ERROR_MESSAGE) {
 toast(CONST.STRINGS.GENERIC_ERROR_MESSAGE_SHORT, "error");
 }
-return Promise.resolve(CONST.ERROR);
 }
+function renderAndUpdateLogSource(logContent, showRefreshToast) {
 const limitLinesTo = Alpine.store("ui").limitLinesTo;
-logRenderer = new LogRenderer(logData.content, limitLinesTo);
+logRenderer = new LogRenderer(logContent, limitLinesTo);
 logRenderer.renderLogContent();
 updateLogSourceViewState({
 content: logRenderer.getRenderedLogContent(),
@@ -195,6 +185,25 @@ shouldSwitchToNav: !showRefreshToast,
 if (showRefreshToast) {
 toast(CONST.STRINGS.REFRESH_SUCCESS_MESSAGE, "success");
 }
+}
+function syncSelectedLogSource() {
+Alpine.effect(() => {
+fetchLogSourceContent();
+addOptionalWordBreaks();
+});
+}
+async function fetchLogSourceContent(showRefreshToast = false) {
+if (!isValidLogSourceSelected()) {
+return Promise.resolve(CONST.NOOP);
+}
+invalidateSearchResults();
+Alpine.store("ui").isLoading = true;
+const logData = await getLogFile(Alpine.store("ui").selectedLogSource);
+if (!logData.success) {
+handleLogSourceFetchError(logData.content);
+return Promise.resolve(CONST.ERROR);
+}
+renderAndUpdateLogSource(logData.content, showRefreshToast);
 }
 function updateLogSourceViewState({ content, lines = "", errorCount = 0, shouldSwitchToNav = false }) {
 const ui = Alpine.store("ui");
@@ -207,37 +216,37 @@ if (!isFirstLoadedSource && shouldSwitchToNav) {
 ui.activeTab = "nav";
 }
 }
-async function getLogFile(pathToFile, fromLine = 0) {
+function buildLogFileUrl(pathToFile, fromLine = 0) {
 const fromLineParam = fromLine > 0 ? `?from=${fromLine}` : "";
-const url = `${LOG_FILE_API_ENDPOINT}/${encodeURIComponent(pathToFile)}/${fromLineParam}`;
-if (pathToFile && pathToFile !== CONST.STRINGS.NONE_SELECTED) {
-let resp = null;
-let success = true;
-const content = await fetch(url, {
-method: "GET",
-redirect: "error",
-})
-.then((response) => {
-resp = response;
-return response.text();
-})
-.then((content) => {
-if (resp.status != 200) {
-logger.error(`Failed to fetch log source (status:${resp.status})`);
-success = false;
+return `${LOG_FILE_API_ENDPOINT}/${encodeURIComponent(pathToFile)}/${fromLineParam}`;
+}
+async function handleLogFileFetchResponse(response, content, state) {
+if (response.status !== 200) {
+logger.error(`Failed to fetch log source (status:${response.status})`);
+state.success = false;
 return Promise.resolve(CONST.STRINGS.GENERIC_ERROR_MESSAGE);
 }
 return Promise.resolve(content);
-})
-.catch((error) => {
-success = false;
-logger.error("Caught error while fetching log source:", error);
-return Promise.resolve(CONST.STRINGS.GENERIC_ERROR_MESSAGE);
-});
-return Promise.resolve({ content, success });
-} else {
+}
+async function getLogFile(pathToFile, fromLine = 0) {
+if (!pathToFile || pathToFile === CONST.STRINGS.NONE_SELECTED) {
 logger.debug("No log source selected, returning empty content.");
 return Promise.resolve({ content: "", success: true });
+}
+const url = buildLogFileUrl(pathToFile, fromLine);
+let success = true;
+try {
+const response = await fetch(url, {
+method: "GET",
+redirect: "error",
+});
+const content = await response.text();
+const state = { success };
+const resultContent = await handleLogFileFetchResponse(response, content, state);
+return Promise.resolve({ content: resultContent, success: state.success });
+} catch (error) {
+logger.error("Caught error while fetching log source:", error);
+return Promise.resolve({ content: CONST.STRINGS.GENERIC_ERROR_MESSAGE, success: false });
 }
 }
 function clearLogFile(fileLocation) {
@@ -271,30 +280,19 @@ logger.error("Caught error while clearing log source:", error);
 function toast(message, type = "success", placement = "center", timeout = 3000) {
 Alpine.store("ui").toast.push(message, type, placement, timeout);
 }
-function setUpSSE() {
-const evtSource = new EventSource(SSE_API_ENDPOINT);
-evtSource.onerror = function (e) {
-logger.error("SSE connection error:", e);
-evtSource.close();
-};
-evtSource.onmessage = async function (e) {
-logger.debug("SSE message received:", e.data);
-const autoRefresh = Alpine.store("ui").autoRefresh;
-if (!autoRefresh) {
-evtSource.close();
-return;
+async function handleSSERotateAction() {
+await fetchLogSourceContent();
 }
-try {
-const jsonData = JSON.parse(e.data);
-if (jsonData.action === "rotate" && jsonData.source === Alpine.store("ui").selectedLogSource) {
-fetchLogSourceContent();
-} else if (
-jsonData.action === "append" &&
-jsonData.source === Alpine.store("ui").selectedLogSource &&
-logRenderer
-) {
-const logData = await getLogFile(jsonData.source, logRenderer.totalLines);
-if (logData.success) {
+async function handleSSEAppendAction(evtSource, source) {
+if (!logRenderer) {
+return false;
+}
+const logData = await getLogFile(source, logRenderer.totalLines);
+if (!logData.success) {
+evtSource.close();
+logger.info("SSE connection closed due to failed log fetch after append.");
+return false;
+}
 logRenderer.appendLogContent(logData.content);
 const content = logRenderer.getRenderedLogContent();
 const lineNumbers = logRenderer.generateLineNumbers();
@@ -305,20 +303,55 @@ lines: lineNumbers,
 errorCount: logRenderer.errorCounter,
 shouldSwitchToNav: false,
 });
-} else {
-evtSource.close();
-logger.info("SSE connection closed due to failed log fetch after append.");
-}
 scrollToBottom();
+return true;
+}
+async function handleSSEMessage(evtSource, data) {
+logger.debug("SSE message received:", data);
+const autoRefresh = Alpine.store("ui").autoRefresh;
+if (!autoRefresh) {
+evtSource.close();
+return;
+}
+try {
+const jsonData = JSON.parse(data);
+const selectedSource = Alpine.store("ui").selectedLogSource;
+if (jsonData.action === "rotate" && jsonData.source === selectedSource) {
+await handleSSERotateAction();
+} else if (jsonData.action === "append" && jsonData.source === selectedSource) {
+await handleSSEAppendAction(evtSource, jsonData.source);
 }
 } catch (err) {
 logger.error("Failed to parse SSE data:", err);
 }
+}
+function setUpSSE() {
+const evtSource = new EventSource(SSE_API_ENDPOINT);
+evtSource.onerror = function (e) {
+logger.error("SSE connection error:", e);
+evtSource.close();
+};
+evtSource.onmessage = async function (e) {
+await handleSSEMessage(evtSource, e.data);
 };
 return evtSource;
 }
+function enableAutoRefresh(refs) {
+toast("Auto-Refresh Enabled");
+refs.evtSource = setUpSSE();
+fetchLogSourceContent(true);
+logger.info("Auto-refresh enabled, SSE connection established.");
+}
+function disableAutoRefresh(refs) {
+toast("Auto-Refresh Paused", "info");
+if (refs.evtSource) {
+refs.evtSource.close();
+refs.evtSource = null;
+logger.debug("SSE connection closed.");
+}
+}
 function handleAutoRefreshToggle() {
-let evtSource = null;
+const refs = { evtSource: null };
 let isFirstEffectRun = true;
 let previousAutoRefreshValue = Alpine.store("ui").autoRefresh;
 Alpine.effect(() => {
@@ -327,8 +360,7 @@ if (isFirstEffectRun) {
 isFirstEffectRun = false;
 previousAutoRefreshValue = autoRefresh;
 if (autoRefresh) {
-evtSource = setUpSSE();
-fetchLogSourceContent(false);
+enableAutoRefresh(refs);
 }
 return;
 }
@@ -336,17 +368,9 @@ if (autoRefresh === previousAutoRefreshValue) {
 return;
 }
 if (autoRefresh) {
-evtSource = setUpSSE();
-fetchLogSourceContent(true);
-toast("Auto-Refresh Enabled");
-logger.info("Auto-refresh enabled, SSE connection established.");
+enableAutoRefresh(refs);
 } else {
-toast("Auto-Refresh Paused", "info");
-if (evtSource) {
-evtSource.close();
-evtSource = null;
-logger.debug("SSE connection closed.");
-}
+disableAutoRefresh(refs);
 }
 previousAutoRefreshValue = autoRefresh;
 });
