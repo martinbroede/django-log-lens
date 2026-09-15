@@ -1,0 +1,632 @@
+{% extends "log_lens/base.html" %}
+{% load static %}
+{% load log_lens_components %}
+
+{% block scripts %}
+  {% if LOG_LENS_DEBUG %}
+    <script defer
+            src="{% static 'django_log_lens/dev/alpinejs.v3.vendor.js' %}"></script>
+    <script data-log-file-api-endpoint="{% url 'log-lens:log-file-api-endpoint' %}"
+            data-sse-api-endpoint="{% url 'log-lens:stream-api' %}"
+            data-search-api-endpoint="{% url 'log-lens:search-api' %}"
+            data-archive-api-endpoint="{% url 'log-lens:archive-api' %}"
+            src="{% static 'django_log_lens/dev/main.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/notifications.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/init.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/formatter.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/util.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/navigation.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/search.js' %}"></script>
+    <script src="{% static 'django_log_lens/dev/archive.js' %}"></script>
+  {% else %}
+    <script data-log-file-api-endpoint="{% url 'log-lens:log-file-api-endpoint' %}"
+            data-sse-api-endpoint="{% url 'log-lens:stream-api' %}"
+            data-search-api-endpoint="{% url 'log-lens:search-api' %}"
+            data-archive-api-endpoint="{% url 'log-lens:archive-api' %}"
+            defer
+            src="{% static 'django_log_lens/main.generated.js' %}"></script>
+  {% endif %}
+{% endblock scripts %}
+
+{% block header %}
+
+  <nav class="container">
+    <ul>
+      <li>
+        <img id="img-logo"
+             width="40px"
+             height="auto"
+             src="{% static 'django_log_lens/favicon.svg' %}"
+             alt="Django Log Lens" />
+      </li>
+      <li>&nbsp;Django Log Lens</li>
+    </ul>
+
+    <ul class="show-lg show-xl"
+        style="position: relative;
+               top: 0.3rem">
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'sources'"
+             :class="{ 'secondary': ui.activeTab !== 'sources' }">Sources</div>
+      </li>
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'config'"
+             :class="{ 'secondary': ui.activeTab !== 'config'}">Config</div>
+      </li>
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'nav'"
+             :class="{ 'secondary': ui.activeTab !== 'nav'}">Navigation</div>
+      </li>
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'search'"
+             :class="{ 'secondary': ui.activeTab !== 'search'}">Search</div>
+      </li>
+      <li>
+        <div role="link"
+             @click="ui.activeTab = 'archive'"
+             :class="{ 'secondary': ui.activeTab !== 'archive'}">Archive</div>
+      </li>
+    </ul>
+
+    <ul>
+      <li>{% logout_link %}</li>
+      <li>{% theme_toggler %}</li>
+    </ul>
+
+  </nav>
+{% endblock header %}
+
+{% block main %}
+  <main x-cloak>
+    <!-- menu for small screens -->
+    <div class="show-xs show-sm show-md">
+      <div class="container spaced">
+        &nbsp;
+        <div role="link"
+             @click="ui.activeTab = 'sources'"
+             :class="{ 'secondary': ui.activeTab !== 'sources' }">Sources&nbsp;</div>
+        <div role="link"
+             @click="ui.activeTab = 'config'"
+             :class="{ 'secondary': ui.activeTab !== 'config'}">Config&nbsp;</div>
+        <div role="link"
+             @click="ui.activeTab = 'nav'"
+             :class="{ 'secondary': ui.activeTab !== 'nav'}">Navigation&nbsp;</div>
+        <div role="link"
+             @click="ui.activeTab = 'search'"
+             :class="{ 'secondary': ui.activeTab !== 'search'}">Search&nbsp;</div>
+        <div role="link"
+             @click="ui.activeTab = 'archive'"
+             :class="{ 'secondary': ui.activeTab !== 'archive'}">Archive</div>
+        &nbsp;
+      </div>
+      <hr />
+    </div>
+
+    <div class="container">
+      <article x-show="ui.activeTab === 'sources'">
+
+        {% tab_header %}
+
+        <table>
+          <thead>
+            <tr>
+              <th>Handler</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for handler, source, name, backup_slots in log_sources %}
+              <tr>
+                <td :class="{ 'pico-primary':  ui.selectedLogSource === '{{ source }}' }">{{ handler }}</td>
+                <td class="spaced">
+                  <span>
+                    <a role="link"
+                       @click="selectSource('{{ source }}');">
+                      <code class="transparent-background">{{ source }}</code>
+                    </a>
+                  </span>
+                  {% if name != "MISCONFIGURATION" %}
+                    <div class="spaced">
+                      {% if backup_slots|length > 0 %}
+                        <details class="dropdown">
+                          <summary>Backup</summary>
+                          <ul>
+                            {% for slot in backup_slots %}
+                              <li>
+                                <a role="link"
+                                   @click="selectSource('{{ slot.0 }}');">{% icon_document_search %} {{ slot.1 }}</a>
+                              </li>
+                              <li>
+                                <a href="{% url 'log-lens:log-file-api-endpoint' %}/{{ slot.0 }}/"
+                                   download="{{ slot.1 }}"
+                                   @click="$el.closest('details').removeAttribute('open');">{% icon_download %} {{ slot.1 }}</a>
+                              </li>
+                              <hr />
+                            {% endfor %}
+                          </ul>
+                        </details>
+                        &nbsp;&nbsp;
+                      {% endif %}
+                      <details class="dropdown">
+                        <summary>Actions</summary>
+                        <ul>
+                          <li>
+                            <a role="link"
+                               @click="selectSource('{{ source }}');">{% icon_document_search %} Load</a>
+                          </li>
+                          <li>
+                            <a href="{% url 'log-lens:log-file-api-endpoint' %}/{{ source }}/"
+                               download="{{ name }}"
+                               @click="$el.closest('details').removeAttribute('open');">{% icon_download %} Download</a>
+                          </li>
+                          <li>
+                            <a role="link"
+                               @click="$el.closest('details').removeAttribute('open'); archiveSource('{{ source }}');">
+                              {% icon_archive %}
+                            Archive</a>
+                          </li>
+                          <li>
+                            <a role="link"
+                               @click="$el.closest('details').removeAttribute('open'); ui.selectedForClearing='{{ source }}'; document.getElementById('dialog-clear-logfile').showModal();">
+                              {% icon_delete %}
+                            Clear</a>
+                          </li>
+                        </ul>
+                      </details>
+                    </div>
+                  {% else %}
+                    <!-- might seem odd in a for loop, but there can only be one misconfiguration entry -->
+                    <dialog open>
+                      <article>
+                        <header class="spaced">
+                          <h2>Misconfiguration Detected</h2>
+                        </header>
+                        <p class="warning">
+                          There seems to be a misconfiguration in your Django
+                          settings. Please review your settings.py file to ensure that the log
+                          handlers are correctly set up.
+                          Make sure there are supported handlers configured,
+                          e.g. FileHandler or RotatingFileHandler.
+                          <hr />
+                          For more information, please refer to the
+                          <a href="https://github.com/martinbroede/django-log-lens"
+                             target="_blank"
+                             rel="noopener noreferrer">documentation</a>.
+                          <!-- todo-#2 adjust when separate docs are available. -->
+                        </p>
+                        <footer>
+                          <button @click="$el.closest('dialog').close();">Close</button>
+                        </footer>
+                      </article>
+                    </dialog>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+
+            {% if not log_sources %}
+              <tr>
+                <td colspan="2">
+
+                  There are no viewable handlers configured,
+                  e.g. a FileHandler.
+                  <br />
+                  Please review the <code>settings.py</code> file.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+
+        {% tab_footer %}
+
+      </article>
+
+      <article x-show="ui.activeTab === 'config'">
+
+        {% tab_header %}
+
+        <div class="grid">
+          <div>
+            <input type="text"
+                   name="path-splitter"
+                   placeholder="e.g. /app"
+                   :value="ui.pathSplitter"
+                   @input="ui.pathSplitter = $event.target.value;"
+                   aria-label="Path Splitter" />
+            <small>Path Splitter</small>
+          </div>
+          <div>
+            <input type="text"
+                   name="path-prefix"
+                   placeholder="e.g. /home/john-doe/projects"
+                   :value="ui.pathPrefix"
+                   @input="ui.pathPrefix = $event.target.value;"
+                   aria-label="Path Prefix" />
+            <small>Path Prefix</small>
+          </div>
+        </div>
+        <br />
+        <details>
+          <summary>How does this work? {% icon_help %}</summary>
+          <blockquote>
+            <p><strong>Path Splitter:</strong> A delimiter to split file paths at. The part after the delimiter is kept. Useful for removing container/remote path prefixes. For example, if your logs contain <code>/app/myproject/views.py</code> and you set the splitter to <code>/app</code>, it will keep <code>/myproject/views.py</code>.</p>
+            <p><strong>Path Prefix:</strong> A prefix to prepend to the split path. Used to convert container paths to your local system paths. If you set the prefix to <code>/home/john-doe/projects</code>, the final path becomes <code>/home/john-doe/projects/myproject/views.py</code>, which can then be opened in VS Code.</p>
+            <p><strong>Example:</strong> Container path: <code>/app/myproject/views.py</code> → Split by <code>/app</code> → Prefix with <code>/home/user/projects</code> → Result: <code>/home/user/projects/myproject/views.py</code></p>
+            <p>The settings will apply to file paths that can be opened in VS Code as well as all strings containing file paths that can be copied to the clipboard by clicking on them.</p>
+          </blockquote>
+        </details>
+        <hr />
+        <div class="grid">
+          <div>
+            <select name="limit-log-lines"
+                    aria-label="Limit Log Lines"
+                    @change="ui.limitLinesTo = $event.target.value;"
+                    :value="ui.limitLinesTo">
+              <option value="100">100</option>
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+              <option value="5000">5000</option>
+              <option value="10000">10000</option>
+            </select>
+            <small>Limit Number of Log Lines</small>
+          </div>
+          <div class="spaced">
+            &nbsp;
+            <label>
+              <input type="checkbox"
+                     role="switch"
+                     :value="ui.fullWidth"
+                     @change="ui.fullWidth = $event.target.checked" />
+              Full Width
+              <span class="no-border"
+                    data-tooltip="Expands the log view to the full width of the screen">&nbsp;{% icon_help %}</span>
+            </label>
+            &nbsp;
+          </div>
+        </div>
+
+        {% tab_footer %}
+
+      </article>
+
+      <article x-show="ui.activeTab === 'nav'">
+
+        {% tab_header %}
+
+        <div class="grid"
+             id="div-navigation-buttons">
+          <button class="outline hide-xs hide-sm"
+                  @click="scrollToTop()">{% icon_arrow_up class="icon-btn" %} Top</button>
+          <button class="outline hide-xs hide-sm"
+                  @click="scrollToBottom()">{% icon_arrow_down class="icon-btn" %} Bottom</button>
+          <button class="outline hide-xs hide-sm"
+                  x-bind:disabled="ui.errorCount === 0"
+                  @click="gotoPrevError()">{% icon_arrow_left class="icon-btn" %} Prev Error</button>
+          <button class="outline hide-xs hide-sm"
+                  x-bind:disabled="ui.errorCount === 0"
+                  @click="gotoNextError()">{% icon_arrow_right class="icon-btn" %} Next Error</button>
+          <button class="outline hide-xs hide-sm"
+                  x-bind:disabled="ui.errorCount === 0"
+                  @click="gotoLatestError()">{% icon_double_arrow class="icon-btn" %} Latest Error</button>
+        </div>
+
+        <br />
+
+        <div class="grid">
+          <div role="group"
+               class="hide-md hide-sm hide-xs">
+            <input name="Line Number"
+                   placeholder="Go to Line"
+                   aria-label="Go to Line"
+                   @keyup.enter="gotoLine($event.target.value)" />
+            <button aria-label="Go to Line Button"
+                    @click="gotoLine($el.previousElementSibling.value);">{% icon_jump_to class="icon-btn-centered" %}</button>
+          </div>
+
+          <div role="group">
+            <input name="Search"
+                   placeholder="Search"
+                   aria-label="Search"
+                   @keyup.enter="onClickSearch()"
+                   @change="invalidateSearchResults()"
+                   @input="ui.searchTerm = $event.target.value" />
+            <button aria-label="Search Button"
+                    @click="onClickSearch()">{% icon_search class="icon-btn-centered" %}</button>
+          </div>
+
+          <div role="group">
+            <button class="outline contrast limit-height"
+                    title="Archive Selected Log Source"
+                    :aria-busy="ui.isArchiving"
+                    x-bind:disabled="!isValidLogSourceSelected()"
+                    @click="archiveSource(ui.selectedLogSource)">
+              <span x-show="!ui.isArchiving">{% icon_archive class="icon-btn-centered" %}</span>
+            </button>
+            &nbsp;&nbsp;
+            <button class="outline contrast limit-height"
+                    title="Refresh Log Source"
+                    @click="fetchLogSourceContent(true);">{% icon_refresh class='icon-btn' %}</button>
+            &nbsp;&nbsp;
+            <button class="outline contrast limit-height"
+                    title="Toggle Auto-Refresh"
+                    @click="ui.autoRefresh = !ui.autoRefresh;">
+              <span x-show="ui.autoRefresh">{% icon_pause_circle class='icon-btn' %}</span>
+              <span x-show="!ui.autoRefresh">{% icon_play_circle class='icon-btn' %}</span>
+            </button>
+          </div>
+        </div>
+
+        {% tab_footer %}
+
+      </article>
+
+      <article x-show="ui.activeTab === 'search'">
+
+        <header class="spaced">
+          <b>Global Search</b>
+          <button @click="ui.activeTab = 'blank'">⨯</button>
+        </header>
+
+        <div class="grid">
+          <div role="group">
+            <input name="global-search"
+                   placeholder="Search All Log Sources"
+                   aria-label="Search All Log Sources"
+                   :value="ui.globalSearchTerm"
+                   @input="ui.globalSearchTerm = $event.target.value"
+                   @keyup.enter="runGlobalSearch()" />
+            <button :aria-busy="ui.isSearching"
+                    title="Search All Log Sources"
+                    @click="runGlobalSearch()">
+              <span x-show="!ui.isSearching">{% icon_search class="icon-btn-centered" %}</span>
+            </button>
+          </div>
+          <div class="spaced">
+            &nbsp;
+            <label>
+              <input type="checkbox"
+                     role="switch"
+                     :checked="ui.globalSearchCaseSensitive"
+                     @change="ui.globalSearchCaseSensitive = $event.target.checked" />
+              Match Case
+              <span class="no-border"
+                    data-tooltip="Searches case-sensitively">&nbsp;{% icon_help %}</span>
+            </label>
+            &nbsp;
+          </div>
+        </div>
+
+        <div x-show="ui.globalSearchSummary">
+          <hr />
+          <b x-text="ui.globalSearchSummary"></b>
+          <hr />
+          <br />
+        </div>
+
+        <template x-for="result in ui.globalSearchResults"
+                  :key="result.source">
+          <details open>
+            <summary>
+              &nbsp;
+              &nbsp;
+              <a role="link"
+                 class="archive-action"
+                 title="Archive this log source"
+                 @click.stop.prevent="archiveSource(result.source)">{% icon_archive class="icon-btn" %}</a>
+              <b x-text="result.name"></b>
+              <span x-show="!result.error"
+                    x-text="`- ${result.matches.length}${result.truncated ? '+' : ''} match(es)`"></span>
+              <span class="error"
+                    x-show="result.error"
+                    x-text="result.error"></span>
+            </summary>
+            <code class="transparent-background"
+                  x-text="result.source"></code>
+            <div class="search-match-list">
+              <template x-for="match in result.matches"
+                        :key="match.line">
+                <div class="search-match">
+                  <a role="link"
+                     class="search-match-line"
+                     title="Open in the log view"
+                     @click="openSearchMatch(result.source, match.line)"
+                     x-text="match.line"></a>
+                  <span class="search-match-text"
+                        :class="match.levelClass"
+                        x-html="match.html"></span>
+                </div>
+              </template>
+            </div>
+            <br />
+          </details>
+        </template>
+
+        {% tab_footer %}
+
+      </article>
+
+      <article x-show="ui.activeTab === 'archive'">
+
+        <header class="spaced">
+          <b>Archived Logs</b>
+          <button @click="ui.activeTab = 'blank'">⨯</button>
+        </header>
+
+        <table>
+          <thead>
+            <tr>
+              <th>
+                File
+                <span aria-label="Loading Archive Entries"
+                      :class="{ 'hidden': !ui.isLoadingArchive }"
+                      aria-busy="true"></span>
+              </th>
+              <th class="hide-xs hide-sm">Archived At</th>
+              <th class="hide-xs hide-sm">Size</th>
+              <th dir="rtl">
+                <a role="link"
+                   title="Refresh Archive"
+                   @click="fetchArchiveEntries()">{% icon_refresh class="icon-btn" %}</a>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="entry in ui.archiveEntries"
+                      :key="entry.source">
+              <tr>
+                <td :class="{ 'pico-primary': ui.selectedLogSource === entry.source }">
+                  <a role="link"
+                     :title="entry.source"
+                     @click="selectSource(entry.source)">
+                    <code class="transparent-background"
+                          x-html="addWordBreaks(entry.name)"></code>
+                  </a>
+                </td>
+                <td class="hide-xs hide-sm"
+                    x-text="formatTimestamp(entry.archived_at)"></td>
+                <td class="hide-xs hide-sm"
+                    x-text="formatFileSize(entry.size)"></td>
+                <td dir="rtl">
+                  <div class="archive-actions">
+                    <a role="link"
+                       title="Load"
+                       @click="selectSource(entry.source)">{% icon_document_search class="icon-btn" %}</a>
+                    <a title="Download"
+                       :href="buildLogFileUrl(entry.source)"
+                       :download="entry.name">{% icon_download class="icon-btn" %}</a>
+                    <a role="link"
+                       title="Delete Permanently"
+                       @click="ui.selectedForArchiveDeletion = entry.source; document.getElementById('dialog-delete-archive').showModal();">{% icon_delete class="icon-btn" %}</a>
+                  </div>
+                </td>
+              </tr>
+            </template>
+
+            <tr x-show="ui.archiveEntries.length === 0">
+              <td colspan="4">No log files have been archived yet.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <footer>
+          <div class="spaced">
+            <span x-text="`Total: ${ui.archiveEntries.length} archived file(s)`"></span>
+            <button class="outline secondary"
+                    x-bind:disabled="ui.archiveEntries.length === 0"
+                    @click="document.getElementById('dialog-delete-all-archives').showModal();">
+              {% icon_delete class="icon-btn" %} Delete all
+            </button>
+          </div>
+        </footer>
+      </article>
+    </div>
+
+    <div id="log-container"
+         :class="{ 'container-fluid': ui.fullWidth, 'container': !ui.fullWidth }"
+         x-show="(ui.activeTab === 'nav' || ui.activeTab === 'blank') && ui.selectedLogSource !== 'NONE SELECTED'">
+      <div id="div-pre-wrapper">
+        <pre id="pre-line-counter"
+             x-html="ui.logSource.lines"></pre>
+        <pre id="pre-log-content"
+             x-html="ui.logSource.content"></pre>
+      </div>
+    </div>
+
+    <!-- Dialogs -->
+    <dialog id="dialog-clear-logfile">
+      <article>
+        <header class="spaced">
+          <h2>Clear Log Source</h2>
+        </header>
+        <p class="error">
+          <code class="transparent-background"
+                x-text="ui.selectedForClearing"></code>
+          <br />
+          Are you sure you want to clear this logfile? This action cannot be undone.
+        </p>
+        <footer>
+          <button class="secondary"
+                  @click="$el.closest('dialog').close();">Cancel</button>
+          <a role="button"
+             @click="$el.closest('dialog').close(); clearLogFile(ui.selectedForClearing);">Confirm</a>
+
+        </footer>
+      </article>
+    </dialog>
+
+    <dialog id="dialog-delete-archive">
+      <article>
+        <header class="spaced">
+          <h2>Delete Archived File</h2>
+        </header>
+        <p class="error">
+          <code class="transparent-background"
+                x-text="ui.selectedForArchiveDeletion"></code>
+          <br />
+          Are you sure you want to delete this archived file? This action cannot be undone.
+        </p>
+        <footer>
+          <button class="secondary"
+                  @click="$el.closest('dialog').close();">Cancel</button>
+          <a role="button"
+             @click="$el.closest('dialog').close(); deleteArchivedSource(ui.selectedForArchiveDeletion);">Confirm</a>
+        </footer>
+      </article>
+    </dialog>
+
+    <dialog id="dialog-delete-all-archives">
+      <article>
+        <header class="spaced">
+          <h2>Delete All Archived Files</h2>
+        </header>
+        <p class="error">
+          <span x-text="`All ${ui.archiveEntries.length} archived file(s) will be deleted permanently.`"></span>
+          <br />
+          This action cannot be undone.
+        </p>
+        <footer>
+          <button class="secondary"
+                  @click="$el.closest('dialog').close();">Cancel</button>
+          <a role="button"
+             @click="$el.closest('dialog').close(); deleteAllArchivedSources();">Confirm</a>
+        </footer>
+      </article>
+    </dialog>
+
+    <div class="msg-toast-stack"
+         x-show="$store.ui.toast.items.some(t => t.placement !== 'bottom')">
+      <template x-for="t in $store.ui.toast.items.filter(t => t.placement !== 'bottom')"
+                :key="t.id">
+        <div class="msg-toast"
+             :class="{ 'msg-toast-success': t.type === 'success', 'msg-toast-info': t.type === 'info', 'msg-toast-error': t.type === 'error', 'msg-toast-warning': t.type === 'warning', 'msg-toast-leaving': t.isLeaving }">
+          <div x-show="t.type === 'error'">{% icon_error class="icon-toast" %}</div>
+          <div x-show="t.type === 'success'">{% icon_check_circle class="icon-toast" %}</div>
+          <div x-show="t.type === 'info'">{% icon_info class="icon-toast" %}</div>
+          <div x-show="t.type === 'warning'">{% icon_info class="icon-toast" %}</div>
+          <span x-text="t.message"></span>
+        </div>
+      </template>
+    </div>
+
+    <div class="msg-toast-stack msg-toast-stack-bottom"
+         x-show="$store.ui.toast.items.some(t => t.placement === 'bottom')">
+      <template x-for="t in $store.ui.toast.items.filter(t => t.placement === 'bottom')"
+                :key="t.id">
+        <div class="msg-toast"
+             :class="{ 'msg-toast-success': t.type === 'success', 'msg-toast-info': t.type === 'info', 'msg-toast-error': t.type === 'error', 'msg-toast-warning': t.type === 'warning', 'msg-toast-leaving': t.isLeaving }">
+          <div x-show="t.type === 'error'">{% icon_error class="icon-toast" %}</div>
+          <div x-show="t.type === 'success'">{% icon_check_circle class="icon-toast" %}</div>
+          <div x-show="t.type === 'info'">{% icon_info class="icon-toast" %}</div>
+          <div x-show="t.type === 'warning'">{% icon_info class="icon-toast" %}</div>
+          <span x-text="t.message"></span>
+        </div>
+      </template>
+    </div>
+  </main>
+
+{% endblock main %}

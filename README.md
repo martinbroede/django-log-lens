@@ -1,37 +1,38 @@
 [![Downloads](https://static.pepy.tech/badge/django-log-lens)](https://pypi.org/project/django-log-lens/)
 [![PyPI](https://img.shields.io/badge/PyPI-django--log--lens-blue)](https://pypi.org/project/django-log-lens/)
-[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmartinbroede%2Fdjango-log-lens%2Fmain%2FVERSION.json&query=version&label=Latest%20Version)](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/VERSION.json)
+[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com/martinbroede/django-log-lens/main/VERSION.json&query=version&label=Latest%20Version)](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/VERSION.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Published](https://img.shields.io/badge/Published%20on-Django%20Packages-0c3c26)](https://djangopackages.org/packages/p/django-log-lens/)
 
 
-[![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml)
 [![Bandit](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/bandit.yaml)
-[![Tests](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
-![Coverage](https://raw.githubusercontent.com/martinbroede/django-log-lens/refs/heads/main/coverage.svg)
 [![Linter](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/linter.yaml)
+[![Tests](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
+[![Coverage](https://martinbroede.github.io/django-log-lens/coverage/badge.svg)](https://martinbroede.github.io/django-log-lens/coverage)
 
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
-[![Django](https://img.shields.io/badge/django-4.1%20%7C%204.2%20(LTS)%20%7C%205.0%20%7C%205.1%20%7C%205.2%20(LTS)-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
+[![Django](https://img.shields.io/badge/django-4.2%20(LTS)%20%7C%205.0%20%7C%205.1%20%7C%205.2%20(LTS)%20%7C%206.0-blue)](https://github.com/martinbroede/django-log-lens/actions/workflows/tests.yaml)
 
 <br/>
 
 <p align="center">
-  <img width="500px" src="https://raw.githubusercontent.com/martinbroede/django-log-lens/main/django_log_lens/static/django_log_lens/logo.svg">
+  <img width="500px" src="https://raw.githubusercontent.com/martinbroede/django-log-lens/main/img/logo.svg">
 </p>
 
 <br/>
 
-Django Log Lens is a dependency-free, lightweight, and easy-to-use logging app for Django.
-It provides an interface to supervise log data while also serving as a useful tool for debugging.
-As a unique feature, it allows clients to send console logs to the server out of the box, working with any frontend
-framework by simply adding a single line of code to include the required script.
+Django Log Lens is a dependency-free logging app for Django.
+It provides a management web interface to view, search, download, archive, and clear log files
+while also serving as a tool for debugging client- and server-side errors.
 
 Want to try it out? [&rarr;Get started!](https://github.com/martinbroede/django-log-lens#getting-started)
 
-# Core Features
+# Features
 
 ### Overview of Accessible Handlers and the Corresponding Log Files
+
+The file handlers of your `LOGGING` configuration are listed together with their log files -
+there is no separate list of log files to maintain.
 
 ![Log Lens Handler Overview](https://raw.githubusercontent.com/martinbroede/django-log-lens/main/docs/demo.handlers.png)
 
@@ -69,32 +70,46 @@ Say, the remote project root is `/web/my-project` (as in the example above) and 
 `/home/user/MY-PROJECT/django/dvenv/lib/python3.10/site-packages/django/http/request.py:151` <br />
 **will be opened by VS Code instead.**
 
+### Review of Backed-up Log Files
+
+Rotated backup files written by handlers such as `RotatingFileHandler` or
+`TimedRotatingFileHandler` (e.g. `debug.log.1` or `debug.log.2024-01-01`) are discovered
+automatically and can be viewed and downloaded from a *Backup* dropdown next to their
+primary log file.
+
+### Global Search
+
+The *Search* tab searches all log sources server-side for a substring
+(optionally case-sensitive). Matches are grouped by log source and can be opened
+directly at the matching line in the log view.
+
+### Archive
+
+Log sources can be archived - i.e. copied to an `archive/` folder next to the log file with a
+timestamp appended to the file name.
+The *Archive* tab lists all archived copies and allows viewing, downloading, and deleting them.
+
 ### Client Logging
 
 Allows clients to send console logs to the server.
 
 ```html
-<!DOCTYPE html>
 <html>
   ...
-  <body>
-    {% include 'js-logger.html' %} <!-- #1 -->
-    ...
-  </body>
+  {% log_js %} <!-- #1 -->
+  ...
   <script>
     throw new Error("Hello, Django Log Lens!"); // #2
   </script>
-</html>
+  ...
 ```
-- \#1. Include the script to send console logs to the server.
-  It will simply override the console methods (debug, info, warn...) in a
-  way they behave the same as before but also send the logs to the server.
-  Thus, the script does not interfere with your frontend framework and
-  can be used out-of-the-box. You should use this only in development mode -
-  otherwise, clients will be able to send arbitrary logs to your server.
-  (not harmful, but may clutter your log files)
-- \#2. You will find errors, including their stack trace, in a log file
-  if you set up django log lens as described below.
+- `#1` - Include the script to send console logs to the server.
+   It will simply override the console methods (`debug`, `info`, `warn`, ...) in a way that
+   they behave the same as before but also send the logs to the server.
+   Thus, the script does not interfere with your frontend framework and can be used
+   out-of-the-box.
+- `#2` - You will find errors, including their stack trace, in a log file if you set up
+   Django Log Lens as described in [Getting Started](getting-started.md).
 
 ## Getting Started
 
@@ -131,7 +146,12 @@ urlpatterns = [
 
 All you need to configure is the `LOG_FOLDER` where your log files are stored which should point to an existing folder.
 With your existing logging configuration, you are good to go.
-For semantic highlighting of log levels, either use `django_log_lens.LOG_FORMAT` or use the `django_log_lens.LEVEL_PREFIX` in your own format.
+For semantic highlighting of log levels, use a format Log Lens can derive the log level from - one of:
+
+- `django_log_lens.LOG_FORMAT`, or your own format prefixed with `django_log_lens.LEVEL_PREFIX` -
+  this adds a `[LVL:<levelno>]` marker to each line which is hidden in the log view
+- any format starting with `%(levelname)s` (e.g. `"%(levelname)s %(asctime)s: %(message)s"`) -
+  level names like `ERROR` or `WARNING` at the beginning of a line are recognized as well
 
 Follow the instructions from the [official Django documentation](https://docs.djangoproject.com/en/5.0/topics/logging/#configuring-logging) to configure the logging system or use the example below.
 
@@ -173,22 +193,28 @@ ALLOW_JS_LOGGING = DEBUG # it's recommendable not to allow client logging in pro
 
 ### 5. Visit Log Lens
 
-You can now visit Django Log Lens by navigating to `{% url 'django_log_lens:view' %}` (code for your template) -
- if you configured the URL pattern as shown above, this would be `logs/view`
+You can now visit Django Log Lens by navigating to `{% url 'log-lens:view' %}` (code for your template) -
+ if you configured the URL pattern as shown above, this would be `logs/view/`
 
 
 ## FAQ
 
-- > Why is are my logs not colored according to the log level?
+- > Why are my logs not colored according to the log level?
 
-  Make sure to set the `LOG_FORMAT` in your `settings.py` as shown in the example above.
+  Make sure your log format starts with `%(levelname)s` or uses the `LOG_FORMAT` / `LEVEL_PREFIX`
+  as shown in the example above.
 - > Can I use my own logging format?
 
-  Basically, yes. Just make sure prefix the loglevel to the log message as shown in the following example:
+  Yes. Any format starting with `%(levelname)s` is accepted as-is:
+  ```python
+  MY_LOG_FORMAT = "%(levelname)s - %(message)s" # adjust to your needs
+  ```
+  If you prefer not to start the format with the level name, prefix it with `LEVEL_PREFIX` instead -
+  the resulting `[LVL:<levelno>]` marker is hidden in the log view:
   ```python
   from django_log_lens import LEVEL_PREFIX
 
-  MY_LOG_FORMAT = "%(levelname)s - %(message)s" # adjust to your needs
+  MY_LOG_FORMAT = "%(asctime)s - %(message)s" # adjust to your needs
   MY_LOG_LENS_FORMAT = LEVEL_PREFIX + MY_LOG_FORMAT
   ```
 - > Which handlers are recognized by Django Log Lens?

@@ -1,0 +1,4 @@
+{% load static %}
+{% csrf_token %}
+<script data-log-post-api="{% url 'log-lens:log-api' %}"
+        src="{% static 'django_log_lens/logger.js' %}"></script>

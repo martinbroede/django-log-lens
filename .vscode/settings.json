@@ -1,0 +1,6 @@
+{
+  "[html]": {
+    "editor.defaultFormatter": "monosans.djlint"
+  },
+  "ruff.lint.enable": false
+}

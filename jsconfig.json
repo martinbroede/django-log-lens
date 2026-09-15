@@ -1,6 +1,15 @@
 {
   "compilerOptions": {
     "checkJs": true,
-    "target": "ES2021"
-  }
+    "target": "es2024",
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false
+  },
+  "exclude": [
+    "django_log_lens/static/django_log_lens/main.generated.js"
+  ]
 }

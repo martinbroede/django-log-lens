@@ -1,12 +1,15 @@
 Django
 
 autopep8
+djlint
 flake8
+Flake8-pyproject
 isort
 
 coverage
 coverage-badge
 
-setuptools
+setuptools~=81.0.0
 build
 twine
+pre-commit

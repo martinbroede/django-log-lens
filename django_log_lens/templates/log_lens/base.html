@@ -1,0 +1,125 @@
+{% load static %}
+{% load log_lens_components %}
+
+<!DOCTYPE html>
+<html lang="en"
+      data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+          content="Django Log Lens - A web-based log viewer for Django applications" />
+    <meta name="keywords"
+          content="django, logging, log viewer, web-based" />
+    <title>Django Log Lens</title>
+    <link rel="icon"
+          type="image/png"
+          href="{% static 'django_log_lens/favicon.svg' %}" />
+    {% if LOG_LENS_DEBUG %}
+      <link rel="stylesheet"
+            href="{% static 'django_log_lens/dev/pico.v2.vendor.css' %}" />
+      <link rel="stylesheet"
+            href="{% static 'django_log_lens/dev/styles.css' %}" />
+    {% else %}
+      <link rel="stylesheet"
+            href="{% static 'django_log_lens/styles.generated.css' %}" />
+    {% endif %}
+
+    {% block scripts %}
+    {% endblock scripts %}
+  </head>
+  <body x-data="$store">
+    <header id="header-base">
+      {% block header %}
+      {% endblock header %}
+    </header>
+
+    {% block main %}
+    {% endblock main %}
+
+    <dialog id="dialog-credits">
+      <article>
+        <header class="spaced">
+          <h2>Credits</h2>
+        </header>
+        <p>
+          Django Log Lens is FOSS software licensed under the MIT License.
+          <br />
+          It utilizes the following open source projects:
+        </p>
+        <ul>
+          <li>
+            <a href="https://alpinejs.dev"
+               target="_blank"
+               rel="noopener noreferrer">Alpine.js</a> - Lightweight JavaScript framework,
+            <br />
+            License: MIT
+          </li>
+          <li>
+            <a href="https://picocss.com"
+               target="_blank"
+               rel="noopener noreferrer">Pico CSS</a> - Minimal CSS framework
+            <br />
+            License: MIT
+          </li>
+        </ul>
+        <footer>
+          <button @click="$el.closest('dialog').close();">Close</button>
+        </footer>
+      </article>
+    </dialog>
+
+    <footer id="footer-base">
+      <div class="container">
+        <span class="spaced">
+          <span>
+            <a href="https://github.com/martinbroede/django-log-lens?tab=MIT-1-ov-file"
+               class="secondary">
+            © 2024 - <span x-text="new Date().getFullYear()"></span> Martin&nbsp;Broede</a>
+            <br class="show-xs show-sm" />
+            <span class="show-md show-lg show-xl">&nbsp;·&nbsp;</span>
+            Django&nbsp;Log&nbsp;Lens
+          </span>
+
+          <span>
+            <a role="link"
+               class="secondary"
+               @click="document.getElementById('dialog-credits').showModal();">Credits</a>
+            &nbsp;&nbsp;
+            <a href="https://github.com/martinbroede/django-log-lens"
+               target="_blank"
+               title="GitHub Repository"
+               rel="noopener noreferrer"
+               class="secondary"
+               aria-label="GitHub Repository">{% icon_github %}</a>
+          </span>
+        </span>
+      </div>
+    </footer>
+  </body>
+  <script>
+    /**
+     * Toggle between light and dark themes.
+     */
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = currentTheme === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+    }
+
+    /**
+     * Set the theme based on user preference stored in localStorage or system preference.
+     * If no preference is stored, use the system preference.
+     */
+    function setThemeFromPreference() {
+      const storedTheme = localStorage.getItem("theme") || "";
+      const systemSetting = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      const theme = storedTheme || systemSetting;
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+
+    setThemeFromPreference();
+  </script>
+</html>
